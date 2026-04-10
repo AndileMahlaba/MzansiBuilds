@@ -1,0 +1,49 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="THx_Tp03iWq8Rs5SA4kY">
+    <mxGraphModel dx="1414" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-1" parent="1" style="whiteSpace=wrap;html=1;" value="User Browser" vertex="1">
+          <mxGeometry height="60" width="120" x="330" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-2" parent="1" style="whiteSpace=wrap;html=1;" value="Frontend&lt;br&gt;(HTML,CSS,JS)" vertex="1">
+          <mxGeometry height="60" width="120" x="330" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-3" parent="1" style="whiteSpace=wrap;html=1;" value="Backend API Flask" vertex="1">
+          <mxGeometry height="60" width="120" x="330" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-5" parent="1" style="whiteSpace=wrap;html=1;" value="Database&lt;br&gt;(Postgres &amp;amp; Supabase)" vertex="1">
+          <mxGeometry height="60" width="120" x="330" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-6" edge="1" parent="1" source="y-3cBvysbTqOrzHGWEjc-1" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" value="">
+          <mxGeometry relative="1" width="100" as="geometry">
+            <mxPoint x="320" y="220" as="sourcePoint" />
+            <mxPoint x="390" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-7" edge="1" parent="1" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" value="">
+          <mxGeometry relative="1" width="100" as="geometry">
+            <mxPoint x="389.5" y="340" as="sourcePoint" />
+            <mxPoint x="389.5" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-8" edge="1" parent="1" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" value="">
+          <mxGeometry relative="1" width="100" as="geometry">
+            <mxPoint x="389.5" y="500" as="sourcePoint" />
+            <mxPoint x="389.5" y="590" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&#xa;HTTP Request&#xa;&#xa;" vertex="1">
+          <mxGeometry height="30" width="60" x="390" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&#xa;REST API&#xa;&#xa;" vertex="1">
+          <mxGeometry height="30" width="60" x="390" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&#xa;SQL Query&#xa;&#xa;" vertex="1">
+          <mxGeometry height="30" width="60" x="380" y="530" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
