@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Celebration Wall · MzansiBuilds{% endblock %}
+{% block content %}
+<section>
+  <header class="section-head">
+    <h1>Celebration Wall</h1>
+    <p class="lede">Projects shipped in public. Respect.</p>
+  </header>
+
+  {% if projects %}
+    <ul class="wall">
+      {% for project in projects %}
+        <li class="wall__item">
+          <a class="wall__link" href="{{ url_for('projects.detail', project_id=project.id) }}">
+            <span class="wall__title">{{ project.title }}</span>
+            <span class="wall__who">{{ project.owner.name }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty">Nobody has marked a project complete yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

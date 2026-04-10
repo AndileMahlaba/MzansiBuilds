@@ -1,0 +1,299 @@
+:root {
+  --green: #0f5132;
+  --green-soft: #198754;
+  --black: #111;
+  --white: #fafafa;
+  --muted: #5c5c5c;
+  --danger: #842029;
+  --ok: #0f5132;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: var(--black);
+  background: var(--white);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.topbar {
+  background: var(--black);
+  color: var(--white);
+  border-bottom: 4px solid var(--green-soft);
+}
+
+.topbar__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--white);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.nav a {
+  color: var(--white);
+  font-size: 0.95rem;
+}
+
+.nav__logout {
+  display: inline;
+  margin: 0;
+}
+
+.linkish {
+  background: none;
+  border: 0;
+  color: var(--white);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.linkish:hover {
+  text-decoration: underline;
+}
+
+.wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.footer {
+  border-top: 1px solid #ddd;
+  padding: 1rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.flash-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.flash {
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.flash--success {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.flash--danger {
+  background: #f8d7da;
+  color: var(--danger);
+}
+
+.flash--info {
+  background: #cff4fc;
+  color: #055160;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.panel--narrow {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.section-head h1 {
+  margin-bottom: 0.25rem;
+}
+
+.lede {
+  color: var(--muted);
+  margin-top: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  font-weight: 600;
+}
+
+.input {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  font: inherit;
+}
+
+.input--area {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.btn {
+  display: inline-block;
+  background: var(--green);
+  color: var(--white);
+  border: 0;
+  border-radius: 6px;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--green-soft);
+}
+
+.btn--small {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.card-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  background: #fff;
+}
+
+.card__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.card__meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.card__support {
+  margin: 0.35rem 0;
+}
+
+.card__snippet {
+  margin: 0.5rem 0 0;
+}
+
+.label {
+  font-weight: 700;
+}
+
+.pager {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.empty {
+  color: var(--muted);
+}
+
+.wall {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.wall__item {
+  border-left: 4px solid var(--green-soft);
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+}
+
+.wall__link {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+}
+
+.wall__title {
+  font-weight: 700;
+}
+
+.wall__who {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.project__meta {
+  color: var(--muted);
+}
+
+.sub {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.milestones,
+.comments,
+.collabs {
+  padding-left: 1.1rem;
+}
+
+.inline-form {
+  margin-top: 0.75rem;
+}

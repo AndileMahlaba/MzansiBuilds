@@ -1,0 +1,1 @@
+"""MzansiBuilds Flask application package."""

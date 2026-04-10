@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Account · MzansiBuilds{% endblock %}
+{% block content %}
+<section class="panel panel--narrow">
+  <h1>Your account</h1>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <label class="field">{{ form.name.label }} {{ form.name(class="input") }}</label>
+    <label class="field">{{ form.bio.label }} {{ form.bio(class="input input--area", rows=4) }}</label>
+    {{ form.submit(class="btn") }}
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Developer feed · MzansiBuilds{% endblock %}
+{% block content %}
+<section>
+  <header class="section-head">
+    <h1>Developer feed</h1>
+    <p class="lede">What people are building right now.</p>
+  </header>
+
+  {% if feed.items %}
+    <ul class="card-list">
+      {% for project in feed.items %}
+        <li class="card">
+          <h2 class="card__title"><a href="{{ url_for('projects.detail', project_id=project.id) }}">{{ project.title }}</a></h2>
+          <p class="card__meta">{{ project.owner.name }} · {{ project.stage|replace('_', ' ')|title }}</p>
+          {% if project.support_needed %}
+            <p class="card__support"><span class="label">Support:</span> {{ project.support_needed }}</p>
+          {% endif %}
+          <p class="card__snippet">{{ project.description[:220] }}{% if project.description|length > 220 %}…{% endif %}</p>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% set p = (feed.offset // feed.limit) + 1 %}
+    <nav class="pager" aria-label="Pagination">
+      {% if p > 1 %}
+        <a class="btn btn--ghost" href="{{ url_for('main.feed', page=p - 1) }}">Previous</a>
+      {% endif %}
+      {% if feed.has_next %}
+        <a class="btn btn--ghost" href="{{ url_for('main.feed', page=p + 1) }}">Next</a>
+      {% endif %}
+    </nav>
+  {% else %}
+    <p class="empty">No active projects yet. Be the first to <a href="{{ url_for('projects.new_project') }}">publish one</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}

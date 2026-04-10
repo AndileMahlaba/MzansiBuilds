@@ -22,3 +22,46 @@ Creating these diagrams helped me organise the project and think through the des
 
 ## Component Level
 ![Component Level](docs/component_level.drawio.png)
+
+## Tech stack
+
+- Python 3.11+ with Flask (server-rendered pages and form handling)
+- SQLAlchemy + SQLite locally (set `DATABASE_URL` to PostgreSQL when you deploy)
+- Flask-Login for sessions, Flask-WTF for CSRF on forms
+- HTML, CSS, and minimal JavaScript under `frontend/`
+
+## Repository layout
+
+- `backend/` — Flask app, routes, models, services, repositories, templates
+- `frontend/` — static CSS/JS (green, white, black theme)
+- `database/schema.sql` — SQL reference matching the ORM models
+- `tests/` — pytest suite (auth, projects, algorithms)
+
+## Setup and run
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python -m flask --app backend.app run
+```
+
+Open http://127.0.0.1:5000, register an account, then use **New project** in the navigation bar.
+
+For PostgreSQL, set `DATABASE_URL` to a SQLAlchemy URL (for example `postgresql+psycopg2://user:pass@host/dbname`) and set `SECRET_KEY` to a long random string before running.
+
+## Testing
+
+```bash
+python -m pytest
+```
+
+The tests cover registration, login, project creation, marking a project complete, and a merge helper used for ordered milestone lists (see `backend/algorithms/` and the notes there on time complexity).
+
+## Security notes
+
+Passwords are hashed with Werkzeug’s helpers rather than stored in plain text. Forms that change state use CSRF tokens. Text fields are length-limited in both WTForms and the repository layer. Use a strong `SECRET_KEY` in any shared or production environment.
+
+## Ethical use of AI
+
+I used AI tools as a sparring partner for debugging, structuring tests, and checking edge cases, but the requirements breakdown, architecture, data model, and how features map to routes and services were decisions I made and reworked until they fit the project. If I accepted a suggestion, I still stepped through it in the debugger or tests until I trusted the behaviour.

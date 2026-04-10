@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} · MzansiBuilds{% endblock %}
+{% block content %}
+<article class="project">
+  <header class="project__head">
+    <h1>{{ project.title }}</h1>
+    <p class="project__meta">By {{ project.owner.name }} · Stage: {{ project.stage|title }} · {{ project.status|title }}</p>
+    {% if project.support_needed %}
+      <p><span class="label">Looking for:</span> {{ project.support_needed }}</p>
+    {% endif %}
+  </header>
+  <div class="project__body">
+    <p>{{ project.description or "No description yet." }}</p>
+  </div>
+
+  <section class="sub">
+    <h2>Milestones</h2>
+    {% if milestones %}
+      <ol class="milestones">
+        {% for m in milestones %}
+          <li>
+            <strong>{{ m.title }}</strong>
+            <span class="muted"> · {{ m.achieved_at.strftime("%d %b %Y") }}</span>
+            {% if m.description %}<p>{{ m.description }}</p>{% endif %}
+          </li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p class="muted">No milestones logged yet.</p>
+    {% endif %}
+
+    {% if not read_only and current_user.id == project.user_id %}
+      <form class="inline-form" method="post" action="{{ url_for('projects.post_milestone', project_id=project.id) }}">
+        {{ milestone_f.hidden_tag() }}
+        <label class="field">{{ milestone_f.title.label }} {{ milestone_f.title(class="input") }}</label>
+        <label class="field">{{ milestone_f.description.label }} {{ milestone_f.description(class="input input--area", rows=3) }}</label>
+        {{ milestone_f.submit(class="btn btn--small") }}
+      </form>
+    {% endif %}
+  </section>
+
+  <section class="sub">
+    <h2>Comments</h2>
+    {% if comments %}
+      <ul class="comments">
+        {% for c in comments %}
+          <li>
+            <p class="comments__who">{{ c.author.name }} · {{ c.created_at.strftime("%d %b %Y, %H:%M") }}</p>
+            <p>{{ c.content }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No comments yet.</p>
+    {% endif %}
+
+    {% if not read_only %}
+      <form class="inline-form" method="post" action="{{ url_for('projects.post_comment', project_id=project.id) }}">
+        {{ comment_f.hidden_tag() }}
+        <label class="field">{{ comment_f.content.label }} {{ comment_f.content(class="input input--area", rows=3) }}</label>
+        {{ comment_f.submit(class="btn btn--small") }}
+      </form>
+    {% endif %}
+  </section>
+
+  <section class="sub">
+    <h2>Collaboration</h2>
+    {% if collabs %}
+      <ul class="collabs">
+        {% for r in collabs %}
+          <li>
+            <strong>{{ r.requester.name }}</strong>
+            <span class="muted"> · {{ r.status }}</span>
+            {% if r.message %}<p>{{ r.message }}</p>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">No requests yet.</p>
+    {% endif %}
+
+    {% if not read_only and current_user.id != project.user_id %}
+      <form class="inline-form" method="post" action="{{ url_for('projects.post_collaborate', project_id=project.id) }}">
+        {{ collab_f.hidden_tag() }}
+        <label class="field">{{ collab_f.message.label }} {{ collab_f.message(class="input input--area", rows=2) }}</label>
+        {{ collab_f.submit(class="btn btn--small") }}
+      </form>
+    {% endif %}
+  </section>
+
+  {% if not read_only and current_user.id == project.user_id and project.status == 'active' %}
+    <section class="sub">
+      <h2>Complete project</h2>
+      <form method="post" action="{{ url_for('projects.post_complete', project_id=project.id) }}">
+        {{ complete_f.hidden_tag() }}
+        {{ complete_f.submit(class="btn") }}
+      </form>
+    </section>
+  {% endif %}
+</article>
+{% endblock %}
