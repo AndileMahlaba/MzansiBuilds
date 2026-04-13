@@ -1,0 +1,44 @@
+{% extends "app_shell.html" %}
+{% block title %}Workspace{% endblock %}
+{% block app_main %}
+<header class="app-page-header">
+  <h1 class="app-page-title">Your workspace</h1>
+  <p class="app-page-lead">
+    Projects you own — your home base for everything you ship in public.
+  </p>
+</header>
+
+<section class="gh-panel">
+  <h2 class="gh-panel__title">Platform pulse</h2>
+  <div class="stat-grid">
+    <div class="stat-pill"><span class="stat-pill__n">{{ snapshot.developers }}</span> developers</div>
+    <div class="stat-pill"><span class="stat-pill__n">{{ snapshot.active_projects }}</span> active builds</div>
+    <div class="stat-pill"><span class="stat-pill__n">{{ snapshot.completed_projects }}</span> shipped</div>
+    <div class="stat-pill"><span class="stat-pill__n">{{ snapshot.milestones }}</span> milestones</div>
+  </div>
+</section>
+
+<section class="gh-panel" style="margin-top: 1.5rem">
+  <div class="gh-panel__head">
+    <h2 class="gh-panel__title">Your projects</h2>
+    <a class="btn btn--sm btn--primary" href="{{ url_for('main.project_new') }}">New project</a>
+  </div>
+  {% if summaries %}
+  <ul class="repo-list">
+    {% for s in summaries %}
+    <li class="repo-list__item">
+      <a href="{{ url_for('main.project_detail', project_id=s.project.id) }}" class="repo-list__link">
+        <span class="repo-list__name">{{ s.project.title }}</span>
+        <span class="repo-list__meta"
+          >{{ s.project.stage }} · {{ s.milestone_count }} milestones · {{ s.comment_count }} comments</span
+        >
+      </a>
+      <span class="badge badge--{{ s.project.status }}">{{ s.project.status }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-inline">No projects yet. <a href="{{ url_for('main.project_new') }}">Create the first one</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}

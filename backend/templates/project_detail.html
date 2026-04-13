@@ -1,101 +1,134 @@
-{% extends "base.html" %}
-{% block title %}{{ project.title }} · MzansiBuilds{% endblock %}
-{% block content %}
-<article class="project">
-  <header class="project__head">
-    <h1>{{ project.title }}</h1>
-    <p class="project__meta">By {{ project.owner.name }} · Stage: {{ project.stage|title }} · {{ project.status|title }}</p>
-    {% if project.support_needed %}
-      <p><span class="label">Looking for:</span> {{ project.support_needed }}</p>
-    {% endif %}
-  </header>
-  <div class="project__body">
-    <p>{{ project.description or "No description yet." }}</p>
+{% extends "app_shell.html" %}
+{% block title %}{{ project.title }}{% endblock %}
+{% block app_main %}
+<header class="app-page-header app-page-header--repo">
+  <div>
+    <p class="repo-breadcrumb">
+      <a href="{{ url_for('main.ssr_feed') }}">Feed</a>
+      <span class="repo-breadcrumb__sep">/</span>
+      <span>{{ project.title }}</span>
+    </p>
+    <h1 class="app-page-title">{{ project.title }}</h1>
+    <p class="app-page-lead">
+      <span class="badge badge--stage">{{ project.stage }}</span>
+      <span class="badge badge--{{ project.status }}">{{ project.status }}</span>
+      · Owner <strong>{{ project.owner.name if project.owner else '—' }}</strong>
+      {% if project.support_needed %}
+      · Needs: {{ project.support_needed }}
+      {% endif %}
+    </p>
   </div>
-
-  <section class="sub">
-    <h2>Milestones</h2>
-    {% if milestones %}
-      <ol class="milestones">
-        {% for m in milestones %}
-          <li>
-            <strong>{{ m.title }}</strong>
-            <span class="muted"> · {{ m.achieved_at.strftime("%d %b %Y") }}</span>
-            {% if m.description %}<p>{{ m.description }}</p>{% endif %}
-          </li>
-        {% endfor %}
-      </ol>
-    {% else %}
-      <p class="muted">No milestones logged yet.</p>
+  <div class="repo-actions">
+    {% if is_owner %}
+    <a class="btn btn--outline btn--sm" href="{{ url_for('main.project_edit', project_id=project.id) }}"
+      >Edit</a
+    >
+    {% if project.status == 'active' %}
+    <form
+      method="post"
+      action="{{ url_for('main.project_complete', project_id=project.id) }}"
+      style="display: inline"
+      onsubmit="return confirm('Mark this project as completed?');"
+    >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="btn btn--sm btn--primary">Mark complete</button>
+    </form>
     {% endif %}
-
-    {% if not read_only and current_user.id == project.user_id %}
-      <form class="inline-form" method="post" action="{{ url_for('projects.post_milestone', project_id=project.id) }}">
-        {{ milestone_f.hidden_tag() }}
-        <label class="field">{{ milestone_f.title.label }} {{ milestone_f.title(class="input") }}</label>
-        <label class="field">{{ milestone_f.description.label }} {{ milestone_f.description(class="input input--area", rows=3) }}</label>
-        {{ milestone_f.submit(class="btn btn--small") }}
-      </form>
     {% endif %}
-  </section>
+  </div>
+</header>
 
-  <section class="sub">
-    <h2>Comments</h2>
-    {% if comments %}
-      <ul class="comments">
-        {% for c in comments %}
-          <li>
-            <p class="comments__who">{{ c.author.name }} · {{ c.created_at.strftime("%d %b %Y, %H:%M") }}</p>
-            <p>{{ c.content }}</p>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">No comments yet.</p>
-    {% endif %}
+{% if project.description %}
+<section class="gh-panel readmd">
+  <h2 class="gh-h2">README</h2>
+  <div class="readme-text">{{ project.description }}</div>
+</section>
+{% endif %}
 
-    {% if not read_only %}
-      <form class="inline-form" method="post" action="{{ url_for('projects.post_comment', project_id=project.id) }}">
-        {{ comment_f.hidden_tag() }}
-        <label class="field">{{ comment_f.content.label }} {{ comment_f.content(class="input input--area", rows=3) }}</label>
-        {{ comment_f.submit(class="btn btn--small") }}
-      </form>
-    {% endif %}
-  </section>
-
-  <section class="sub">
-    <h2>Collaboration</h2>
-    {% if collabs %}
-      <ul class="collabs">
-        {% for r in collabs %}
-          <li>
-            <strong>{{ r.requester.name }}</strong>
-            <span class="muted"> · {{ r.status }}</span>
-            {% if r.message %}<p>{{ r.message }}</p>{% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">No requests yet.</p>
-    {% endif %}
-
-    {% if not read_only and current_user.id != project.user_id %}
-      <form class="inline-form" method="post" action="{{ url_for('projects.post_collaborate', project_id=project.id) }}">
-        {{ collab_f.hidden_tag() }}
-        <label class="field">{{ collab_f.message.label }} {{ collab_f.message(class="input input--area", rows=2) }}</label>
-        {{ collab_f.submit(class="btn btn--small") }}
-      </form>
-    {% endif %}
-  </section>
-
-  {% if not read_only and current_user.id == project.user_id and project.status == 'active' %}
-    <section class="sub">
-      <h2>Complete project</h2>
-      <form method="post" action="{{ url_for('projects.post_complete', project_id=project.id) }}">
-        {{ complete_f.hidden_tag() }}
-        {{ complete_f.submit(class="btn") }}
-      </form>
-    </section>
+<section class="gh-panel" id="milestones">
+  <h2 class="gh-h2">Milestones</h2>
+  {% if milestones %}
+  <ul class="timeline">
+    {% for m in milestones %}
+    <li class="timeline__item">
+      <div class="timeline__dot"></div>
+      <div class="timeline__body">
+        <strong>{{ m.title }}</strong>
+        {% if m.description %}<p class="timeline__desc">{{ m.description }}</p>{% endif %}
+        <span class="timeline__time">{{ m.achieved_at }}</span>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-inline">No milestones yet.</p>
   {% endif %}
-</article>
+  {% if is_owner and project.status == 'active' %}
+  <form
+    method="post"
+    action="{{ url_for('main.project_add_milestone', project_id=project.id) }}"
+    class="inline-form grid-form"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input class="field-input" name="title" placeholder="Milestone title" required minlength="2" />
+    <input class="field-input" name="description" placeholder="Details (optional)" />
+    <button type="submit" class="btn btn--sm btn--primary">Add milestone</button>
+  </form>
+  {% endif %}
+</section>
+
+<section class="gh-panel" id="comments">
+  <h2 class="gh-h2">Discussion</h2>
+  {% if comments %}
+  <ul class="comment-list">
+    {% for c in comments %}
+    <li class="comment-list__item">
+      <div class="comment-list__avatar">{{ (c.author.name if c.author else '?')[0] }}</div>
+      <div>
+        <span class="comment-list__author">{{ c.author.name if c.author else 'Unknown' }}</span>
+        <span class="comment-list__time">{{ c.created_at }}</span>
+        <p class="comment-list__text">{{ c.content }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-inline">No comments yet — start the thread.</p>
+  {% endif %}
+  {% if current_user.is_authenticated %}
+  <form method="post" action="{{ url_for('main.project_add_comment', project_id=project.id) }}" class="stack-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <textarea class="field-input" name="content" rows="3" placeholder="Write a comment…" required></textarea>
+    <button type="submit" class="btn btn--sm btn--primary">Comment</button>
+  </form>
+  {% else %}
+  <p class="empty-inline"><a href="{{ url_for('main.login', next=request.path) }}">Log in</a> to comment.</p>
+  {% endif %}
+</section>
+
+<section class="gh-panel" id="collaboration">
+  <h2 class="gh-h2">Collaboration</h2>
+  {% if collabs %}
+  <ul class="collab-list">
+    {% for r in collabs %}
+    <li class="collab-list__item">
+      <strong>{{ r.requester.name if r.requester else 'User' }}</strong>
+      <span class="badge badge--{{ r.status }}">{{ r.status }}</span>
+      <p>{{ r.message }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-inline">No requests yet.</p>
+  {% endif %}
+  {% if current_user.is_authenticated and not is_owner and project.status == 'active' %}
+  <form method="post" action="{{ url_for('main.project_request_collab', project_id=project.id) }}" class="stack-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <textarea class="field-input" name="message" rows="2" placeholder="Why do you want to collaborate?" required></textarea>
+    <button type="submit" class="btn btn--sm btn--outline">Raise hand</button>
+  </form>
+  {% elif not current_user.is_authenticated %}
+  <p class="empty-inline"><a href="{{ url_for('main.login', next=request.path) }}">Log in</a> to request collaboration.</p>
+  {% endif %}
+</section>
 {% endblock %}

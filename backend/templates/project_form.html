@@ -1,0 +1,55 @@
+{% extends "app_shell.html" %}
+{% block title %}{{ 'Edit project' if project else 'New project' }}{% endblock %}
+{% block app_main %}
+<header class="app-page-header">
+  <h1 class="app-page-title">{{ 'Edit project' if project else 'New project' }}</h1>
+  <p class="app-page-lead">
+    {% if project %}
+    <a href="{{ url_for('main.project_detail', project_id=project.id) }}">← Back to project</a>
+    {% else %}
+    Describe what you are building in public.
+    {% endif %}
+  </p>
+</header>
+
+<div class="gh-panel" style="max-width: 40rem">
+  {% if error %}
+  <p class="form-error">{{ error }}</p>
+  {% endif %}
+  <form
+    method="post"
+    action="{{ url_for('main.project_edit', project_id=project.id) if project else url_for('main.project_new') }}"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <label class="field-label" for="title">Title</label>
+    <input
+      class="field-input"
+      id="title"
+      name="title"
+      type="text"
+      required
+      minlength="2"
+      value="{{ project.title if project else '' }}"
+    />
+    <label class="field-label" for="description">Description</label>
+    <textarea class="field-input" id="description" name="description" rows="5">{{ project.description if project else '' }}</textarea>
+    <label class="field-label" for="stage">Stage</label>
+    <select class="field-input" id="stage" name="stage" required>
+      {% for s in stages %}
+      <option value="{{ s }}" {% if project and project.stage == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <label class="field-label" for="support_needed">Support needed</label>
+    <input
+      class="field-input"
+      id="support_needed"
+      name="support_needed"
+      type="text"
+      maxlength="200"
+      value="{{ project.support_needed if project else '' }}"
+      placeholder="e.g. code review, design feedback"
+    />
+    <button type="submit" class="btn btn--primary">{{ 'Save changes' if project else 'Create project' }}</button>
+  </form>
+</div>
+{% endblock %}

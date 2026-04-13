@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import joinedload
 
-from backend.constants import PROJECT_ACTIVE
+from backend.constants import COLLAB_PENDING, PROJECT_ACTIVE
 from backend.extensions import db
 from backend.models.collaboration import CollaborationRequest
 from backend.models.comment import Comment
@@ -22,20 +22,40 @@ class ProjectRepository:
             .first()
         )
 
-    def list_feed_page(self, offset: int, limit: int) -> list[Project]:
-        """Active projects newest first. Indexed created_at keeps this O(log n + k) for k rows returned."""
+    def count_active(self, stage: str | None = None) -> int:
+        q = db.session.query(Project).filter(Project.status == PROJECT_ACTIVE)
+        if stage:
+            q = q.filter(Project.stage == stage)
+        return q.count()
+
+    def list_feed_page(
+        self, offset: int, limit: int, stage: str | None = None
+    ) -> list[Project]:
+        """Active projects newest first; optional stage narrows the index-backed set."""
+        q = (
+            db.session.query(Project)
+            .options(joinedload(Project.owner))
+            .filter(Project.status == PROJECT_ACTIVE)
+        )
+        if stage:
+            q = q.filter(Project.stage == stage)
+        return (
+            q.order_by(Project.created_at.desc()).offset(offset).limit(limit).all()
+        )
+
+    def list_active_pool_unordered(self, limit: int) -> list[Project]:
+        """
+        Active projects with no ORDER BY so the planner returns an arbitrary slice; we then
+        pick top-k by date in Python (see feed spotlight). Keeps the hotspot in the service layer.
+        """
+        cap = min(500, max(1, limit))
         return (
             db.session.query(Project)
             .options(joinedload(Project.owner))
             .filter(Project.status == PROJECT_ACTIVE)
-            .order_by(Project.created_at.desc())
-            .offset(offset)
-            .limit(limit)
+            .limit(cap)
             .all()
         )
-
-    def count_active(self) -> int:
-        return db.session.query(Project).filter(Project.status == PROJECT_ACTIVE).count()
 
     def list_celebration(self, limit: int = 100) -> list[Project]:
         from backend.constants import PROJECT_COMPLETED
@@ -132,6 +152,19 @@ class ProjectRepository:
             .filter_by(project_id=project_id)
             .order_by(Comment.created_at.asc())
             .all()
+        )
+
+    def get_pending_collaboration(
+        self, project_id: int, requester_id: int
+    ) -> CollaborationRequest | None:
+        return (
+            db.session.query(CollaborationRequest)
+            .filter_by(
+                project_id=project_id,
+                requester_id=requester_id,
+                status=COLLAB_PENDING,
+            )
+            .first()
         )
 
     def add_collaboration_request(

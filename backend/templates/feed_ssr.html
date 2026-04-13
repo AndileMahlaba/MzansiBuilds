@@ -1,0 +1,83 @@
+{% extends "app_shell.html" %}
+{% block title %}Developer feed{% endblock %}
+{% block app_main %}
+<header class="app-page-header">
+  <h1 class="app-page-title">Developer feed</h1>
+  <p class="app-page-lead">
+    Live builds from the community — spotlight surfaces standout active work so nothing good stays hidden.
+  </p>
+  <div class="stage-chips" aria-label="Filter by stage">
+    <span class="stage-chips__label">Stage</span>
+    <a
+      href="{{ url_for('main.ssr_feed') }}"
+      class="stage-chip {% if not stage_filter %}is-active{% endif %}"
+      >All</a
+    >
+    {% for s in stages %}
+    <a
+      href="{{ url_for('main.ssr_feed', stage=s) }}"
+      class="stage-chip {% if stage_filter == s %}is-active{% endif %}"
+      >{{ s }}</a
+    >
+    {% endfor %}
+  </div>
+  <p class="subnav-links">
+    <a href="{{ url_for('main.projects_by_status', status='active') }}">Directory · active</a>
+    <a href="{{ url_for('main.projects_by_status', status='completed') }}">Directory · completed</a>
+  </p>
+</header>
+
+{% if spotlight %}
+<section class="spotlight gh-animate" aria-label="Spotlight">
+  <h2 class="gh-h2">In the spotlight</h2>
+  <div class="spotlight-row">
+    {% for p in spotlight %}
+    <a class="spotlight-card spotlight-card--link" href="{{ url_for('main.project_detail', project_id=p.id) }}">
+      <h3>{{ p.title }}</h3>
+      <p class="meta">{{ p.stage }} · {{ p.owner.name if p.owner else "—" }}</p>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if feed.items %}
+<ul class="repo-list repo-list--feed">
+  {% for p in feed.items %}
+  <li class="repo-list__item repo-list__item--row">
+    <a href="{{ url_for('main.project_detail', project_id=p.id) }}" class="repo-list__link">
+      <span class="repo-list__name">{{ p.title }}</span>
+      <span class="repo-list__meta"
+        >{{ p.stage }} · {{ p.owner.name if p.owner else "—" }} · {{ p.status }}</span
+      >
+      {% if p.description %}
+      <span class="repo-list__desc">{{ p.description[:180] }}{% if p.description|length > 180 %}…{% endif %}</span>
+      {% endif %}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty gh-panel">No active projects match this filter.</p>
+{% endif %}
+
+<nav class="pager pager--feed" aria-label="Pagination">
+  {% if page > 1 %}
+  <a
+    href="{{ url_for('main.ssr_feed', page=page - 1, per_page=per_page) }}{% if stage_filter %}&stage={{ stage_filter }}{% endif %}"
+    >← Newer</a
+  >
+  {% else %}
+  <span class="muted">← Newer</span>
+  {% endif %}
+  <span class="muted">Page {{ page }} · {{ feed.items | length }} here</span>
+  {% if feed.has_next %}
+  <a
+    href="{{ url_for('main.ssr_feed', page=page + 1, per_page=per_page) }}{% if stage_filter %}&stage={{ stage_filter }}{% endif %}"
+    >Older →</a
+  >
+  {% else %}
+  <span class="muted">Older →</span>
+  {% endif %}
+</nav>
+{% endblock %}

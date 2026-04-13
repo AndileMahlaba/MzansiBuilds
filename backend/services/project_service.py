@@ -74,6 +74,8 @@ class ProjectService:
     ) -> tuple[object | None, str | None]:
         if project.user_id == actor.id:
             return None, "You cannot collaborate on your own project through a request."
+        if self._repo.get_pending_collaboration(project.id, actor.id):
+            return None, "You already have a pending collaboration request for this project."
         r = self._repo.add_collaboration_request(project.id, actor.id, message)
         return r, None
 

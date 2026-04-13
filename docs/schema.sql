@@ -1,5 +1,6 @@
--- MzansiBuilds logical schema (PostgreSQL-style).
--- ORM migrations for local dev use SQLite; this file documents the same structure for reviewers.
+-- MzansiBuilds logical schema (PostgreSQL / Supabase).
+-- Production uses Supabase Postgres; local dev may use SQLite with the same ORM models.
+-- This file documents the structure for reviewers (see docs/README.md).
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,

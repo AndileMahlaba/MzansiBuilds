@@ -1,0 +1,28 @@
+{% extends "app_shell.html" %}
+{% block title %}System{% endblock %}
+{% block app_main %}
+<header class="app-page-header">
+  <h1 class="app-page-title">Command center</h1>
+  <p class="app-page-lead">
+    Live snapshot of the community — developers, projects, milestones, and momentum in one view.
+  </p>
+</header>
+
+<div class="gh-panel">
+  <p class="meta">API version <strong>{{ api_version }}</strong></p>
+  <div class="stat-grid stat-grid--dense">
+    <div class="stat-pill"><span class="stat-pill__n">{{ snap.developers }}</span> developers</div>
+    <div class="stat-pill"><span class="stat-pill__n">{{ snap.active_projects }}</span> active</div>
+    <div class="stat-pill"><span class="stat-pill__n">{{ snap.completed_projects }}</span> completed</div>
+    <div class="stat-pill"><span class="stat-pill__n">{{ snap.milestones }}</span> milestones</div>
+    <div class="stat-pill"><span class="stat-pill__n">{{ snap.comments }}</span> comments</div>
+    <div class="stat-pill"><span class="stat-pill__n">{{ snap.pending_collaborations }}</span> pending collab</div>
+  </div>
+  <h2 class="gh-h2" style="margin-top: 1.5rem">Stages (active)</h2>
+  <ul class="flat-list">
+    {% for stage, n in snap.stage_counts.items() %}
+    <li><code class="code-tag">{{ stage }}</code> <strong>{{ n }}</strong></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

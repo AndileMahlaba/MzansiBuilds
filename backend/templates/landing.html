@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}MzansiBuilds — build in public{% endblock %}
+{% block content %}
+<section class="landing">
+  <div class="landing__grid">
+    <div>
+      <p class="eyebrow">Public builds · open collaboration</p>
+      <h1 class="hero-title">
+        Ship in the open<br />
+        Grow with the community
+      </h1>
+      <p class="hero-lead">
+        One place to post what you are building, track milestones, join the live feed,
+        comment, ask for collaboration, and celebrate shipped work—together.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn--primary" href="{{ url_for('main.register') }}"
+          >Create your account</a
+        >
+        <a class="btn btn--outline" href="{{ url_for('main.ssr_feed') }}"
+          >Browse the feed</a
+        >
+        <a class="link-quiet" href="{{ url_for('main.ssr_system') }}">Command center</a>
+      </div>
+    </div>
+    <div class="code-card-wrap">
+      <div class="code-card" aria-label="API preview">
+        <div class="code-card__bar">
+          <span class="code-card__dot"></span>
+          <span class="code-card__dot"></span>
+          <span class="code-card__dot"></span>
+          <span style="margin-left: 0.5rem">GET /api/v1</span>
+        </div>
+        <pre><code>{
+  "system": "MzansiBuilds — build in public",
+  "version": "{{ api_version }}",
+  "theme": "green · white · black",
+  "endpoints": {
+    "feed": "/api/v1/feed",
+    "stats": "/api/v1/stats",
+    "celebration": "/api/v1/celebration"
+  }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

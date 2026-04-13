@@ -7,7 +7,7 @@
         <mxCell id="y-3cBvysbTqOrzHGWEjc-1" parent="1" style="whiteSpace=wrap;html=1;" value="User Browser" vertex="1">
           <mxGeometry height="60" width="120" x="330" y="120" as="geometry" />
         </mxCell>
-        <mxCell id="y-3cBvysbTqOrzHGWEjc-2" parent="1" style="whiteSpace=wrap;html=1;" value="Frontend&lt;br&gt;(HTML,CSS,JS)" vertex="1">
+        <mxCell id="y-3cBvysbTqOrzHGWEjc-2" parent="1" style="whiteSpace=wrap;html=1;" value="React SPA&lt;br&gt;(Vite, TS)" vertex="1">
           <mxGeometry height="60" width="120" x="330" y="280" as="geometry" />
         </mxCell>
         <mxCell id="y-3cBvysbTqOrzHGWEjc-3" parent="1" style="whiteSpace=wrap;html=1;" value="Backend API Flask" vertex="1">

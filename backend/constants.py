@@ -1,4 +1,4 @@
-"""Shared domain constants (stages, statuses) used across forms and validation."""
+"""Shared domain constants (stages, statuses) for validation and API contracts."""
 
 PROJECT_STAGES = (
     "idea",

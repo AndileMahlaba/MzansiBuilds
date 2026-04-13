@@ -1,0 +1,27 @@
+{% extends "app_shell.html" %}
+{% block title %}Projects — {{ status_label | capitalize }}{% endblock %}
+{% block app_main %}
+<header class="app-page-header">
+  <h1 class="app-page-title">Projects · {{ status_label }}</h1>
+  <p class="app-page-lead">
+    <a href="{{ url_for('main.projects_by_status', status='active') }}" {% if status_label == 'active' %}class="link-strong"{% endif %}>Active</a>
+    ·
+    <a href="{{ url_for('main.projects_by_status', status='completed') }}" {% if status_label == 'completed' %}class="link-strong"{% endif %}>Completed</a>
+  </p>
+</header>
+
+{% if projects %}
+<ul class="repo-list">
+  {% for p in projects %}
+  <li class="repo-list__item">
+    <a href="{{ url_for('main.project_detail', project_id=p.id) }}" class="repo-list__link">
+      <span class="repo-list__name">{{ p.title }}</span>
+      <span class="repo-list__meta">{{ p.stage }} · {{ p.owner.name if p.owner else '—' }}</span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty gh-panel">No projects with this status.</p>
+{% endif %}
+{% endblock %}

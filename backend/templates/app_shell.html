@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+  <head>
+    <!-- MZANSI_TEMPLATE_V2 -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}App{% endblock %} · MzansiBuilds</title>
+    {% include "partials/head_assets_rest.html" %}
+    {% block head_extra %}{% endblock %}
+  </head>
+  <body class="theme-app">
+    {% set sa = sidebar_active|default('') %}
+    <div class="app-root">
+      {% include "partials/app_sidebar.html" %}
+      <div class="app-main">
+        <main class="app-main-inner" id="main-content">
+          {% include "partials/flash_messages.html" %}
+          {% block app_main %}{% endblock %}
+        </main>
+        <nav class="app-rail" aria-label="Quick navigation">
+          <a
+            href="{{ url_for('main.home') }}"
+            {% if sa == 'overview' %}class="is-active"{% endif %}
+            >Overview</a
+          >
+          <a
+            href="{{ url_for('main.ssr_feed') }}"
+            {% if sa == 'feed' %}class="is-active"{% endif %}
+            >Feed</a
+          >
+          {% if current_user.is_authenticated %}
+          <a
+            href="{{ url_for('main.dashboard') }}"
+            {% if sa == 'dashboard' %}class="is-active"{% endif %}
+            >Workspace</a
+          >
+          <a
+            href="{{ url_for('main.project_new') }}"
+            {% if sa == 'new' %}class="is-active"{% endif %}
+            >New</a
+          >
+          {% endif %}
+          <a
+            href="{{ url_for('main.ssr_celebration') }}"
+            {% if sa == 'celebration' %}class="is-active"{% endif %}
+            >Celebrate</a
+          >
+          <a
+            href="{{ url_for('main.ssr_system') }}"
+            {% if sa == 'system' %}class="is-active"{% endif %}
+            >System</a
+          >
+          {% if current_user.is_authenticated %}
+          <a
+            href="{{ url_for('main.account') }}"
+            {% if sa == 'account' %}class="is-active"{% endif %}
+            >You</a
+          >
+          {% endif %}
+        </nav>
+      </div>
+    </div>
+    <footer class="app-shell-footer">
+      MzansiBuilds · PostgreSQL · session shared with
+      <a href="/api/v1">/api/v1</a>
+    </footer>
+  </body>
+</html>

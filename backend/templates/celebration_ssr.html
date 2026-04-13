@@ -1,0 +1,26 @@
+{% extends "app_shell.html" %}
+{% block title %}Celebration wall{% endblock %}
+{% block app_main %}
+<header class="app-page-header">
+  <h1 class="app-page-title">Celebration wall</h1>
+  <p class="app-page-lead">
+    Shipped projects — recognition for everyone who finished in public.
+  </p>
+</header>
+
+{% if projects %}
+<ul class="repo-list">
+  {% for p in projects %}
+  <li class="repo-list__item">
+    <a href="{{ url_for('main.project_detail', project_id=p.id) }}" class="repo-list__link">
+      <span class="repo-list__name">{{ p.title }}</span>
+      <span class="repo-list__meta">{{ p.stage }} · {{ p.owner.name if p.owner else "—" }}</span>
+    </a>
+    <span class="badge badge--completed">completed</span>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty gh-panel">No completed projects yet.</p>
+{% endif %}
+{% endblock %}

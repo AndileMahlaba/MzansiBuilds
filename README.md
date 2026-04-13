@@ -1,67 +1,59 @@
 # MzansiBuilds
 
-## Project profiling
+Web application for **building in public**: developers register, publish projects (stage and support needed), follow a live feed, comment, request collaboration, record milestones, and mark work complete so it appears on a **Celebration Wall**. UI theme: green, white, and black. Layout inspired by a GitHub-style project view and a Discord-style sidebar / navigation pattern.
 
-To begin the MzansiBuilds project, I first focused on understanding the requirements and the problem the platform is trying to solve. The idea behind the platform is to allow developers to build projects publicly while sharing their progress and collaborating with other developers. Based on the requirements provided in the challenge, the main features of the system include user account creation and management, creating and updating projects, viewing what other developers are working on, interacting through comments or collaboration requests, tracking project milestones, and displaying completed projects on a celebration wall.
+## Requirements coverage
 
-After reviewing the requirements, I broke the system down into smaller functional areas so that it would be easier to plan and implement. These areas included authentication for user accounts, project management for creating and updating projects, a developer feed where users can see projects from other developers, milestone tracking to record progress, and a section that highlights completed projects.
+| Area | Implementation |
+|------|----------------|
+| Account | Registration, login, session auth, profile (name, bio) |
+| Projects | Create / edit, stage, support needed, description |
+| Feed | Paginated list with stage filter; spotlight ordering |
+| Engagement | Comments; collaboration (“raise hand”) |
+| Progress | Milestones with timestamps |
+| Completion | Owner marks complete; project listed on Celebration Wall |
+| API | JSON under `/api/v1` (same app as the HTML routes) |
 
-Before starting with the implementation, I created diagrams to help visualise the system structure and how the different parts of the application interact with each other. I designed a system architecture diagram to show how the user interface communicates with the backend and database. I also created an entity relationship diagram to outline the database structure and the relationships between users, projects, milestones, and comments. In addition, I mapped out the user flow to understand the typical journey a developer would take on the platform from registering an account to completing a project.
+## Stack
 
-Creating these diagrams helped me organise the project and think through the design before writing any code. This made it easier to understand how the different components of the system connect and ensured that the development process would follow a clear and structured approach.
-
-
-## System architecture
-![System Architecture](docs/architecture.drawio.png)
-
-## Database Design
-![Database ER Diagram](docs/ERD.drawio.png)
-
-## User Flow
-![User Flow](docs/user-flow_diagram.drawio.png)
-
-## Component Level
-![Component Level](docs/component_level.drawio.png)
-
-## Tech stack
-
-- Python 3.11+ with Flask (server-rendered pages and form handling)
-- SQLAlchemy + SQLite locally (set `DATABASE_URL` to PostgreSQL when you deploy)
-- Flask-Login for sessions, Flask-WTF for CSRF on forms
-- HTML, CSS, and minimal JavaScript under `frontend/`
+- Python 3, Flask, Flask-Login, Flask-WTF (CSRF), SQLAlchemy  
+- Jinja2 templates, static CSS (no SPA build required for the shipped UI)  
+- PostgreSQL in production; tests use in-memory SQLite  
 
 ## Repository layout
 
-- `backend/` — Flask app, routes, models, services, repositories, templates
-- `frontend/` — static CSS/JS (green, white, black theme)
-- `database/schema.sql` — SQL reference matching the ORM models
-- `tests/` — pytest suite (auth, projects, algorithms)
+- `backend/` — application factory, routes, services, repositories, models, templates, `static/`  
+- `frontend/` — empty placeholder with `.gitignore` only (kept so optional future client tooling does not pollute the repo)  
+- `docs/` — architecture diagrams, schema reference, technical notes  
+- `tests/` — pytest  
+- `run.py` — local dev server  
+- `Procfile` — Gunicorn entry for deployment  
 
-## Setup and run
+## Setup
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
 pip install -r requirements.txt
-python -m flask --app backend.app run
 ```
 
-Open http://127.0.0.1:5000, register an account, then use **New project** in the navigation bar.
+Create `.env` from `.env.example` and set `SECRET_KEY` and `DATABASE_URL`. Then run:
 
-For PostgreSQL, set `DATABASE_URL` to a SQLAlchemy URL (for example `postgresql+psycopg2://user:pass@host/dbname`) and set `SECRET_KEY` to a long random string before running.
-
-## Testing
-
-```bash
-python -m pytest
+```text
+python run.py
 ```
 
-The tests cover registration, login, project creation, marking a project complete, and a merge helper used for ordered milestone lists (see `backend/algorithms/` and the notes there on time complexity).
+Open `http://127.0.0.1:5000/`. Tests:
 
-## Security notes
+```text
+set MZANSI_SKIP_DOTENV=1
+python -m pytest -q
+```
 
-Passwords are hashed with Werkzeug’s helpers rather than stored in plain text. Forms that change state use CSRF tokens. Text fields are length-limited in both WTForms and the repository layer. Use a strong `SECRET_KEY` in any shared or production environment.
+(On PowerShell: `$env:MZANSI_SKIP_DOTENV="1"`.)
 
-## Ethical use of AI
+## Deployment
 
-I used AI tools as a sparring partner for debugging, structuring tests, and checking edge cases, but the requirements breakdown, architecture, data model, and how features map to routes and services were decisions I made and reworked until they fit the project. If I accepted a suggestion, I still stepped through it in the debugger or tests until I trusted the behaviour.
+Set the same environment variables on the host and run the command in `Procfile` (Gunicorn with `backend.app:create_app`). Serve one HTTPS origin for both pages and `/api/v1`.
+
+## Author
+
+Software engineering project: full-stack design, data modelling, automated tests, and deployment configuration.

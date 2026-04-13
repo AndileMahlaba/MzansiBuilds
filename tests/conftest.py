@@ -1,3 +1,8 @@
+import os
+
+# Must run before importing backend (so tests do not read developer .env for URL assertions).
+os.environ.setdefault("MZANSI_SKIP_DOTENV", "1")
+
 import pytest
 
 from backend.app import create_app

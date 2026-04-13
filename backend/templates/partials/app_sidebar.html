@@ -1,0 +1,70 @@
+<aside class="app-sidebar" aria-label="Workspace">
+  <div class="app-sidebar__brand">
+    <a href="{{ url_for('main.home') }}" class="app-sidebar__logo">
+      <span class="app-sidebar__mark">M</span>
+      <span>MzansiBuilds</span>
+    </a>
+  </div>
+  <nav class="app-sidebar__nav" aria-label="Primary">
+    <a
+      href="{{ url_for('main.home') }}"
+      class="app-sidebar__link {% if sa == 'overview' %}is-active{% endif %}"
+    >
+      <span class="app-sidebar__ico" aria-hidden="true">⌂</span> Overview
+    </a>
+    <a
+      href="{{ url_for('main.ssr_feed') }}"
+      class="app-sidebar__link {% if sa == 'feed' %}is-active{% endif %}"
+    >
+      <span class="app-sidebar__ico" aria-hidden="true">◎</span> Feed
+    </a>
+    {% if current_user.is_authenticated %}
+    <a
+      href="{{ url_for('main.dashboard') }}"
+      class="app-sidebar__link {% if sa == 'dashboard' %}is-active{% endif %}"
+    >
+      <span class="app-sidebar__ico" aria-hidden="true">▣</span> Workspace
+    </a>
+    <a
+      href="{{ url_for('main.project_new') }}"
+      class="app-sidebar__link {% if sa == 'new' %}is-active{% endif %}"
+    >
+      <span class="app-sidebar__ico" aria-hidden="true">＋</span> New project
+    </a>
+    {% endif %}
+    <a
+      href="{{ url_for('main.ssr_celebration') }}"
+      class="app-sidebar__link {% if sa == 'celebration' %}is-active{% endif %}"
+    >
+      <span class="app-sidebar__ico" aria-hidden="true">★</span> Celebration
+    </a>
+    <a
+      href="{{ url_for('main.ssr_system') }}"
+      class="app-sidebar__link {% if sa == 'system' %}is-active{% endif %}"
+    >
+      <span class="app-sidebar__ico" aria-hidden="true">⚙</span> System
+    </a>
+    {% if current_user.is_authenticated %}
+    <a
+      href="{{ url_for('main.account') }}"
+      class="app-sidebar__link {% if sa == 'account' %}is-active{% endif %}"
+    >
+      <span class="app-sidebar__ico" aria-hidden="true">●</span> Account
+    </a>
+    {% endif %}
+  </nav>
+  <div class="app-sidebar__footer">
+    {% if current_user.is_authenticated %}
+    <div class="app-sidebar__user">{{ current_user.name }}</div>
+    <form method="post" action="{{ url_for('main.logout') }}" class="app-sidebar__logout">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="btn btn--sidebar">Log out</button>
+    </form>
+    {% else %}
+    <a class="btn btn--sidebar btn--sidebar-primary" href="{{ url_for('main.login') }}"
+      >Log in</a
+    >
+    <a class="btn btn--sidebar" href="{{ url_for('main.register') }}">Register</a>
+    {% endif %}
+  </div>
+</aside>
