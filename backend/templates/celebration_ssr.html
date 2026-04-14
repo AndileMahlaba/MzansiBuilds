@@ -1,26 +1,70 @@
 {% extends "app_shell.html" %}
 {% block title %}Celebration wall{% endblock %}
 {% block app_main %}
-<header class="app-page-header">
-  <h1 class="app-page-title">Celebration wall</h1>
-  <p class="app-page-lead">
-    Shipped projects — recognition for everyone who finished in public.
-  </p>
-</header>
+<section class="celebration-hero" aria-labelledby="celebration-title">
+  <div class="celebration-hero__glow" aria-hidden="true"></div>
+  <div class="celebration-hero__inner">
+    <p class="celebration-hero__eyebrow">Shipped in public</p>
+    <h1 id="celebration-title" class="celebration-hero__title">Celebration wall</h1>
+    <p class="celebration-hero__lead">
+      Every completion here is someone who stuck with their build until the end. Explore, cheer them on, and steal momentum for your own roadmap.
+    </p>
+    <div class="celebration-hero__stats">
+      <div class="celebration-stat">
+        <span class="celebration-stat__n">{{ completed_total }}</span>
+        <span class="celebration-stat__l">projects shipped (all time)</span>
+      </div>
+      <div class="celebration-stat celebration-stat--soft">
+        <span class="celebration-stat__n">{{ pulse.developers }}</span>
+        <span class="celebration-stat__l">builders on the platform</span>
+      </div>
+    </div>
+  </div>
+</section>
 
 {% if projects %}
-<ul class="repo-list">
+<div class="celebration-toolbar">
+  <p class="celebration-toolbar__hint">
+    Showing the most recent <strong>{{ projects | length }}</strong> celebration{% if projects|length != 1 %}s{% endif %}
+    {% if completed_total > projects|length %} (of {{ completed_total }} total){% endif %}
+  </p>
+</div>
+<ul class="celebration-grid">
   {% for p in projects %}
-  <li class="repo-list__item">
-    <a href="{{ url_for('main.project_detail', project_id=p.id) }}" class="repo-list__link">
-      <span class="repo-list__name">{{ p.title }}</span>
-      <span class="repo-list__meta">{{ p.stage }} · {{ p.owner.name if p.owner else "—" }}</span>
+  <li>
+    <a class="celebration-card" href="{{ url_for('main.project_detail', project_id=p.id) }}">
+      <div class="celebration-card__shine" aria-hidden="true"></div>
+      <div class="celebration-card__head">
+        <span class="celebration-card__avatar" aria-hidden="true"
+          >{{ (p.owner.name[0] if p.owner and p.owner.name else '?') | upper }}</span
+        >
+        <span class="celebration-card__badge">Shipped</span>
+      </div>
+      <h2 class="celebration-card__title">{{ p.title }}</h2>
+      <p class="celebration-card__meta">
+        <span class="celebration-card__stage">{{ p.stage }}</span>
+        · {{ p.owner.name if p.owner else "Builder" }}
+      </p>
+      {% if p.description %}
+      <p class="celebration-card__desc">{{ p.description[:140] }}{% if p.description|length > 140 %}…{% endif %}</p>
+      {% endif %}
+      <span class="celebration-card__cta">View project →</span>
     </a>
-    <span class="badge badge--completed">completed</span>
   </li>
   {% endfor %}
 </ul>
 {% else %}
-<p class="empty gh-panel">No completed projects yet.</p>
+<div class="empty-state empty-state--celebration">
+  <div class="empty-state__icon" aria-hidden="true">★</div>
+  <p class="empty-state__title">The wall is waiting</p>
+  <p class="empty-state__text">
+    When someone marks a project complete, it lands here. Be the first to ship in public.
+  </p>
+  {% if current_user.is_authenticated %}
+  <a class="btn btn--primary" href="{{ url_for('main.dashboard') }}">Go to your workspace</a>
+  {% else %}
+  <a class="btn btn--primary" href="{{ url_for('main.register') }}">Join and build</a>
+  {% endif %}
+</div>
 {% endif %}
 {% endblock %}

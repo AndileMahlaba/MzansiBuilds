@@ -1,48 +1,124 @@
 {% extends "base.html" %}
-{% block title %}MzansiBuilds — build in public{% endblock %}
+{% block title %}MzansiBuilds: build in public{% endblock %}
 {% block content %}
-<section class="landing">
-  <div class="landing__grid">
-    <div>
-      <p class="eyebrow">Public builds · open collaboration</p>
-      <h1 class="hero-title">
-        Ship in the open<br />
-        Grow with the community
-      </h1>
-      <p class="hero-lead">
-        One place to post what you are building, track milestones, join the live feed,
-        comment, ask for collaboration, and celebrate shipped work—together.
-      </p>
-      <div class="hero-cta">
-        <a class="btn btn--primary" href="{{ url_for('main.register') }}"
-          >Create your account</a
-        >
-        <a class="btn btn--outline" href="{{ url_for('main.ssr_feed') }}"
-          >Browse the feed</a
-        >
-        <a class="link-quiet" href="{{ url_for('main.ssr_system') }}">Command center</a>
-      </div>
-    </div>
-    <div class="code-card-wrap">
-      <div class="code-card" aria-label="API preview">
-        <div class="code-card__bar">
-          <span class="code-card__dot"></span>
-          <span class="code-card__dot"></span>
-          <span class="code-card__dot"></span>
-          <span style="margin-left: 0.5rem">GET /api/v1</span>
+<div class="landing-discord">
+  <div class="landing-discord__mesh" aria-hidden="true"></div>
+  <div class="landing-discord__orb landing-discord__orb--a" aria-hidden="true"></div>
+  <div class="landing-discord__orb landing-discord__orb--b" aria-hidden="true"></div>
+
+  <section class="landing landing--discord-hero">
+    <div class="landing__grid landing__grid--hero">
+      <div class="landing__copy">
+        <p class="eyebrow">Public builds · open collaboration</p>
+        <h1 class="hero-title hero-title--discord">
+          Ship in the open.<br />
+          <span class="hero-title__accent">Grow with the community.</span>
+        </h1>
+        <p class="hero-lead">
+          Show what you are building, move milestones forward, join the live feed, start conversations,
+          and raise your hand when you want help. Then celebrate when you ship.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn--primary btn--hero" href="{{ url_for('main.register') }}">Create your account</a>
+          <a class="btn btn--outline btn--hero-outline" href="{{ url_for('main.ssr_feed') }}">Explore the feed</a>
+          <a class="link-quiet" href="{{ url_for('main.ssr_system') }}">Community pulse</a>
         </div>
-        <pre><code>{
-  "system": "MzansiBuilds — build in public",
-  "version": "{{ api_version }}",
-  "theme": "green · white · black",
-  "endpoints": {
-    "feed": "/api/v1/feed",
-    "stats": "/api/v1/stats",
-    "celebration": "/api/v1/celebration"
-  }
-}</code></pre>
+        <ul class="landing-pill-row" aria-label="What you can do">
+          <li class="landing-pill">Live feed &amp; spotlight</li>
+          <li class="landing-pill">Milestones &amp; story</li>
+          <li class="landing-pill">Celebration wall</li>
+        </ul>
+      </div>
+      <div class="landing-preview-wrap" aria-hidden="true">
+        <div class="landing-preview">
+          <div class="landing-preview__chrome">
+            <span class="landing-preview__dots"><span></span><span></span><span></span></span>
+            <span class="landing-preview__title">Workspace</span>
+          </div>
+          <div class="landing-preview__shell">
+            <div class="landing-preview__rail">
+              <span class="landing-preview__rail-i is-on"></span>
+              <span class="landing-preview__rail-i"></span>
+              <span class="landing-preview__rail-i"></span>
+              <span class="landing-preview__rail-i"></span>
+            </div>
+            <div class="landing-preview__main">
+              <div class="landing-preview__feed-h">Developer feed</div>
+              <div class="landing-preview__card">
+                <span class="landing-preview__dot"></span>
+                <div>
+                  <div class="landing-preview__line landing-preview__line--strong"></div>
+                  <div class="landing-preview__line landing-preview__line--meta"></div>
+                </div>
+              </div>
+              <div class="landing-preview__card">
+                <span class="landing-preview__dot landing-preview__dot--b"></span>
+                <div>
+                  <div class="landing-preview__line landing-preview__line--strong"></div>
+                  <div class="landing-preview__line landing-preview__line--meta"></div>
+                </div>
+              </div>
+              <div class="landing-preview__card landing-preview__card--dim">
+                <span class="landing-preview__dot landing-preview__dot--c"></span>
+                <div>
+                  <div class="landing-preview__line landing-preview__line--strong"></div>
+                  <div class="landing-preview__line landing-preview__line--meta"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+
+  <section class="landing-bento" aria-label="Why MzansiBuilds">
+    <h2 class="landing-bento__title">Everything in one calm workspace</h2>
+    <p class="landing-bento__lead">
+      Clear structure for your build, fast ways to discover others, and room to collaborate, without the noise.
+    </p>
+    <div class="landing-bento__grid">
+      <article class="bento-card bento-card--wide">
+        <h3>Your project, front and centre</h3>
+        <p>
+          Tell your story with a clear overview, milestones people can follow, and a thread for real discussion, so
+          supporters know how to help.
+        </p>
+      </article>
+      <article class="bento-card">
+        <h3>Navigation that stays out of the way</h3>
+        <p>
+          A steady sidebar on large screens and a quick rail on your phone. Jump between feed, workspace, and
+          celebrations in one gesture.
+        </p>
+      </article>
+      <article class="bento-card">
+        <h3>Momentum you can feel</h3>
+        <p>
+          Spotlight calls attention to active work, the celebration wall honours finishes, and collaboration requests
+          turn interest into action.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="landing-links" aria-label="Explore the product">
+    <h2 class="landing-links__title">Explore the platform</h2>
+    <p class="landing-links__lead">Jump into the feed, see momentum on the system pulse, or set up how you show up to others.</p>
+    <div class="landing-links__grid">
+      <a class="landing-link-card" href="{{ url_for('main.ssr_feed') }}">
+        <h3>Developer feed</h3>
+        <p>Filter by stage, follow spotlights, and open projects that match your skills.</p>
+      </a>
+      <a class="landing-link-card" href="{{ url_for('main.ssr_system') }}">
+        <h3>Community pulse</h3>
+        <p>Live counts and stage signals. See where the community is busiest.</p>
+      </a>
+      <a class="landing-link-card" href="{{ url_for('main.register') }}">
+        <h3>Create your account</h3>
+        <p>Public profile, workspace, and celebrations when you ship, built for builders.</p>
+      </a>
+    </div>
+  </section>
+</div>
 {% endblock %}

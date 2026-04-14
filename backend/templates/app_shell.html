@@ -9,11 +9,12 @@
     {% block head_extra %}{% endblock %}
   </head>
   <body class="theme-app">
+    <a class="skip-link" href="#main-content">Skip to content</a>
     {% set sa = sidebar_active|default('') %}
     <div class="app-root">
       {% include "partials/app_sidebar.html" %}
       <div class="app-main">
-        <main class="app-main-inner" id="main-content">
+        <main class="app-main-inner" id="main-content" tabindex="-1">
           {% include "partials/flash_messages.html" %}
           {% block app_main %}{% endblock %}
         </main>
@@ -60,9 +61,6 @@
         </nav>
       </div>
     </div>
-    <footer class="app-shell-footer">
-      MzansiBuilds · PostgreSQL · session shared with
-      <a href="/api/v1">/api/v1</a>
-    </footer>
+    <footer class="app-shell-footer">{% include "partials/site_footer.html" %}</footer>
   </body>
 </html>

@@ -1,6 +1,7 @@
 {% extends "app_shell.html" %}
 {% block title %}{{ project.title }}{% endblock %}
 {% block app_main %}
+<div class="project-surface project-surface--{{ project.stage }}">
 <header class="app-page-header app-page-header--repo">
   <div>
     <p class="repo-breadcrumb">
@@ -12,7 +13,7 @@
     <p class="app-page-lead">
       <span class="badge badge--stage">{{ project.stage }}</span>
       <span class="badge badge--{{ project.status }}">{{ project.status }}</span>
-      · Owner <strong>{{ project.owner.name if project.owner else '—' }}</strong>
+      · Owner <strong>{{ project.owner.name if project.owner else 'Unknown' }}</strong>
       {% if project.support_needed %}
       · Needs: {{ project.support_needed }}
       {% endif %}
@@ -38,12 +39,98 @@
   </div>
 </header>
 
+{% if project.repo_url or project.demo_url %}
+<section class="gh-panel project-links-panel" aria-label="Repository and demo">
+  <h2 class="gh-h2">Code &amp; demo</h2>
+  <p class="project-links-panel__intro">
+    MzansiBuilds does not host source files. Link your Git forge or zip so collaborators can review real lines of code, issues, and PRs where you already work.
+  </p>
+  <ul class="project-link-list">
+    {% if project.repo_url %}
+    <li><a class="project-link-list__a" href="{{ project.repo_url }}" rel="noopener noreferrer" target="_blank">Repository</a></li>
+    {% endif %}
+    {% if project.demo_url %}
+    <li><a class="project-link-list__a" href="{{ project.demo_url }}" rel="noopener noreferrer" target="_blank">Live demo / preview</a></li>
+    {% endif %}
+  </ul>
+  {% if is_owner %}
+  <p class="empty-inline"><a href="{{ url_for('main.project_edit', project_id=project.id) }}">Edit project</a> to update these URLs.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if project.owner %}
+<section class="owner-card gh-panel" id="builder" aria-labelledby="builder-heading">
+  <h2 class="gh-h2" id="builder-heading">Builder</h2>
+  <div class="owner-card__layout">
+    <span class="owner-card__avatar" aria-hidden="true">{{ (project.owner.name[0] if project.owner.name else '?') | upper }}</span>
+    <div class="owner-card__main">
+      <p class="owner-card__name">{{ project.owner.name }}</p>
+      {% set ob = visible_owner_bio(project.owner) %}
+      {% if ob %}
+      <p class="owner-card__bio">{{ ob }}</p>
+      {% else %}
+      <p class="owner-card__bio owner-card__bio--muted">This builder has not added a public bio yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<nav class="jump-nav" aria-label="On this page">
+  {% if project.description %}
+  <a class="jump-nav__link" href="#readme">Overview</a>
+  {% endif %}
+  {% if project.owner %}
+  <a class="jump-nav__link" href="#builder">Builder</a>
+  {% endif %}
+  <a class="jump-nav__link" href="#build-log">Build log</a>
+  <a class="jump-nav__link" href="#milestones">Milestones</a>
+  <a class="jump-nav__link" href="#comments">Discussion</a>
+  <a class="jump-nav__link" href="#collaboration">Collaboration</a>
+</nav>
+
 {% if project.description %}
-<section class="gh-panel readmd">
+<section class="gh-panel readmd" id="readme">
   <h2 class="gh-h2">README</h2>
   <div class="readme-text">{{ project.description }}</div>
 </section>
 {% endif %}
+
+<section class="gh-panel" id="build-log">
+  <h2 class="gh-h2">Build log</h2>
+  <p class="field-hint" style="margin-top: 0">Ship notes, diffs in words, what moved this week. Pair this with your repo link above so comments sit next to real work.</p>
+  {% if build_logs %}
+  <ul class="build-log-list">
+    {% for log in build_logs %}
+    <li class="build-log-list__item">
+      <p class="build-log-list__title">{{ log.title }}</p>
+      <p class="build-log-list__meta">{{ log.author.name if log.author else 'Builder' }} · {{ log.created_at }}</p>
+      {% if log.body %}
+      <div class="build-log-list__body">{{ log.body }}</div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-inline">No build updates yet.</p>
+  {% endif %}
+  {% if is_owner and project.status == 'active' %}
+  <form
+    method="post"
+    action="{{ url_for('main.project_add_build_log', project_id=project.id) }}"
+    class="stack-form"
+    style="margin-top: 1rem"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <label class="field-label" for="bl-title">Update title</label>
+    <input class="field-input" id="bl-title" name="title" placeholder="e.g. Shipped auth + feed filters" required minlength="2" />
+    <label class="field-label" for="bl-body">What changed</label>
+    <textarea class="field-input" id="bl-body" name="body" rows="4" placeholder="Commits, risks, next steps…"></textarea>
+    <button type="submit" class="btn btn--sm btn--primary">Post update</button>
+  </form>
+  {% endif %}
+</section>
 
 <section class="gh-panel" id="milestones">
   <h2 class="gh-h2">Milestones</h2>
@@ -87,18 +174,22 @@
       <div>
         <span class="comment-list__author">{{ c.author.name if c.author else 'Unknown' }}</span>
         <span class="comment-list__time">{{ c.created_at }}</span>
+        {% set cb = visible_owner_bio(c.author) if c.author else None %}
+        {% if cb %}
+        <p class="comment-list__author-bio">{{ cb[:200] }}{% if cb|length > 200 %}…{% endif %}</p>
+        {% endif %}
         <p class="comment-list__text">{{ c.content }}</p>
       </div>
     </li>
     {% endfor %}
   </ul>
   {% else %}
-  <p class="empty-inline">No comments yet — start the thread.</p>
+  <p class="empty-inline">No comments yet. Start the thread.</p>
   {% endif %}
   {% if current_user.is_authenticated %}
   <form method="post" action="{{ url_for('main.project_add_comment', project_id=project.id) }}" class="stack-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-    <textarea class="field-input" name="content" rows="3" placeholder="Write a comment…" required></textarea>
+    <textarea class="field-input" name="content" rows="3" placeholder="Write a comment..." required></textarea>
     <button type="submit" class="btn btn--sm btn--primary">Comment</button>
   </form>
   {% else %}
@@ -131,4 +222,5 @@
   <p class="empty-inline"><a href="{{ url_for('main.login', next=request.path) }}">Log in</a> to request collaboration.</p>
   {% endif %}
 </section>
+</div>
 {% endblock %}

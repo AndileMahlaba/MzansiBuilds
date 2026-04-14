@@ -1,12 +1,37 @@
 {% extends "app_shell.html" %}
 {% block title %}Developer feed{% endblock %}
 {% block app_main %}
-<header class="app-page-header">
-  <h1 class="app-page-title">Developer feed</h1>
-  <p class="app-page-lead">
-    Live builds from the community — spotlight surfaces standout active work so nothing good stays hidden.
+<header class="feed-masthead">
+  <div class="feed-masthead__top">
+    <div>
+      <p class="feed-masthead__eyebrow">Live community</p>
+      <h1 class="app-page-title feed-masthead__title">Developer feed</h1>
+      <p class="app-page-lead feed-masthead__lead">
+        Real projects, real momentum. Filter by stage, jump into spotlights, and open anything that sparks collaboration.
+      </p>
+    </div>
+    <div class="feed-pulse" aria-label="Community pulse">
+      <div class="feed-pulse__item">
+        <span class="feed-pulse__n">{{ pulse.developers }}</span>
+        <span class="feed-pulse__l">builders</span>
+      </div>
+      <div class="feed-pulse__item">
+        <span class="feed-pulse__n">{{ pulse.active_projects }}</span>
+        <span class="feed-pulse__l">active</span>
+      </div>
+      <div class="feed-pulse__item">
+        <span class="feed-pulse__n">{{ pulse.comments }}</span>
+        <span class="feed-pulse__l">comments</span>
+      </div>
+    </div>
+  </div>
+  {% if busiest_stage %}
+  <p class="feed-insight">
+    <span class="feed-insight__tag">Signal</span>
+    Strongest activity in <strong>{{ busiest_stage }}</strong>. {{ busiest_detail }}
   </p>
-  <div class="stage-chips" aria-label="Filter by stage">
+  {% endif %}
+  <div class="stage-chips feed-stage-chips" aria-label="Filter by stage">
     <span class="stage-chips__label">Stage</span>
     <a
       href="{{ url_for('main.ssr_feed') }}"
@@ -21,20 +46,94 @@
     >
     {% endfor %}
   </div>
-  <p class="subnav-links">
-    <a href="{{ url_for('main.projects_by_status', status='active') }}">Directory · active</a>
-    <a href="{{ url_for('main.projects_by_status', status='completed') }}">Directory · completed</a>
-  </p>
+  <div class="feed-masthead__links">
+    <a class="feed-masthead__link" href="{{ url_for('main.projects_by_status', status='active') }}">Browse all active</a>
+    <a class="feed-masthead__link" href="{{ url_for('main.projects_by_status', status='completed') }}">See completed</a>
+    <a class="feed-masthead__link" href="{{ url_for('main.ssr_system') }}">Community pulse</a>
+  </div>
 </header>
 
+{% if current_user.is_authenticated %}
+<section class="feed-identity" aria-label="Your profile on the feed">
+  <div class="feed-identity__card">
+    <span class="feed-identity__avatar" aria-hidden="true"
+      >{{ (current_user.name[0] if current_user.name else '?') | upper }}</span
+    >
+    <div class="feed-identity__body">
+      <p class="feed-identity__eyebrow">You on the feed</p>
+      <p class="feed-identity__name">{{ current_user.name }}</p>
+      {% set me_bio = visible_owner_bio(current_user) %}
+      {% if me_bio %}
+      <p class="feed-identity__bio">{{ me_bio }}</p>
+      {% else %}
+      <p class="feed-identity__bio feed-identity__bio--muted">
+        Add a public bio in
+        <a href="{{ url_for('main.account') }}">Account</a>
+        so builders know how to collaborate with you.
+      </p>
+      {% endif %}
+    </div>
+    <div class="feed-identity__actions">
+      <a class="btn btn--sm btn--primary" href="{{ url_for('main.project_new') }}">New project</a>
+      <a class="btn btn--sm btn--outline" href="{{ url_for('main.dashboard') }}">Workspace</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if recent_comments %}
+<section class="feed-activity" aria-label="Recent discussion">
+  <div class="feed-activity__head">
+    <h2 class="feed-activity__title">Recent discussion</h2>
+    <p class="feed-activity__sub">Latest comments across projects. Jump in where it resonates.</p>
+  </div>
+  <ul class="feed-activity__list">
+    {% for c in recent_comments %}
+    <li class="feed-activity__item">
+      <span class="feed-activity__avatar" aria-hidden="true"
+        >{{ (c.author.name[0] if c.author and c.author.name else '?') | upper }}</span
+      >
+      <div class="feed-activity__body">
+        <p class="feed-activity__meta">
+          <strong>{{ c.author.name if c.author else 'Someone' }}</strong>
+          on
+          <a href="{{ url_for('main.project_detail', project_id=c.project_id) }}#comments">{{ c.project.title if c.project else 'project' }}</a>
+        </p>
+        <p class="feed-activity__text">{{ c.content[:180] }}{% if c.content|length > 180 %}…{% endif %}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
 {% if spotlight %}
-<section class="spotlight gh-animate" aria-label="Spotlight">
-  <h2 class="gh-h2">In the spotlight</h2>
-  <div class="spotlight-row">
+<section class="spotlight spotlight--pro gh-animate" aria-label="Spotlight">
+  <div class="spotlight__head">
+    <h2 class="gh-h2 spotlight__h">In the spotlight</h2>
+    <p class="spotlight__sub">Fresh picks from active work. Open a card to follow the full story.</p>
+  </div>
+  <div class="spotlight-row spotlight-row--pro">
     {% for p in spotlight %}
-    <a class="spotlight-card spotlight-card--link" href="{{ url_for('main.project_detail', project_id=p.id) }}">
-      <h3>{{ p.title }}</h3>
-      <p class="meta">{{ p.stage }} · {{ p.owner.name if p.owner else "—" }}</p>
+    <a class="spotlight-card spotlight-card--pro" href="{{ url_for('main.project_detail', project_id=p.id) }}">
+      <div class="spotlight-card__top">
+        <span class="spotlight-card__avatar" aria-hidden="true"
+          >{{ (p.owner.name[0] if p.owner and p.owner.name else '?') | upper }}</span
+        >
+        <span class="spotlight-card__ribbon">Featured</span>
+      </div>
+      <h3 class="spotlight-card__title">{{ p.title }}</h3>
+      <p class="spotlight-card__meta">
+        <span class="spotlight-card__stage">{{ p.stage }}</span>
+        · {{ p.owner.name if p.owner else "Unknown" }}
+      </p>
+      {% if p.description %}
+      <p class="spotlight-card__tease">{{ p.description[:120] }}{% if p.description|length > 120 %}…{% endif %}</p>
+      {% endif %}
+      {% set sb = visible_owner_bio(p.owner) if p.owner else None %}
+      {% if sb %}
+      <p class="spotlight-card__owner-bio">{{ sb[:100] }}{% if sb|length > 100 %}…{% endif %}</p>
+      {% endif %}
     </a>
     {% endfor %}
   </div>
@@ -42,42 +141,65 @@
 {% endif %}
 
 {% if feed.items %}
-<ul class="repo-list repo-list--feed">
-  {% for p in feed.items %}
-  <li class="repo-list__item repo-list__item--row">
-    <a href="{{ url_for('main.project_detail', project_id=p.id) }}" class="repo-list__link">
-      <span class="repo-list__name">{{ p.title }}</span>
-      <span class="repo-list__meta"
-        >{{ p.stage }} · {{ p.owner.name if p.owner else "—" }} · {{ p.status }}</span
+<section class="feed-stream" aria-label="Projects">
+  <h2 class="feed-stream__h">All projects{% if stage_filter %} · {{ stage_filter }}{% endif %}</h2>
+  <ul class="feed-tiles">
+    {% for p in feed.items %}
+    <li class="feed-tile">
+      <span class="feed-tile__avatar" aria-hidden="true"
+        >{{ (p.owner.name[0] if p.owner and p.owner.name else '?') | upper }}</span
       >
-      {% if p.description %}
-      <span class="repo-list__desc">{{ p.description[:180] }}{% if p.description|length > 180 %}…{% endif %}</span>
-      {% endif %}
-    </a>
-  </li>
-  {% endfor %}
-</ul>
+      <a href="{{ url_for('main.project_detail', project_id=p.id) }}" class="feed-tile__link">
+        <span class="feed-tile__title">{{ p.title }}</span>
+        <span class="feed-tile__meta">
+          <span class="feed-tile__pill">{{ p.stage }}</span>
+          · {{ p.owner.name if p.owner else "Unknown" }}
+          {% if p.created_at %}
+          · <time datetime="{{ p.created_at.isoformat() }}">{{ p.created_at.strftime('%d %b %Y') }}</time>
+          {% endif %}
+        </span>
+        {% if p.description %}
+        <span class="feed-tile__desc">{{ p.description[:200] }}{% if p.description|length > 200 %}…{% endif %}</span>
+        {% endif %}
+        {% set ob = visible_owner_bio(p.owner) if p.owner else None %}
+        {% if ob %}
+        <span class="feed-tile__builder"><span class="feed-tile__builder-label">Builder</span> {{ ob[:120] }}{% if ob|length > 120 %}…{% endif %}</span>
+        {% endif %}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
 {% else %}
-<p class="empty gh-panel">No active projects match this filter.</p>
+<div class="empty-state empty-state--feed">
+  <p class="empty-state__title">Nothing in this view yet</p>
+  <p class="empty-state__text">Try another stage filter, or browse active and completed directories.</p>
+  <div class="empty-state__actions">
+    <a class="btn btn--sm btn--primary" href="{{ url_for('main.ssr_feed') }}">Show all stages</a>
+    <a class="btn btn--sm btn--outline" href="{{ url_for('main.projects_by_status', status='active') }}">Active directory</a>
+  </div>
+</div>
 {% endif %}
 
-<nav class="pager pager--feed" aria-label="Pagination">
+<nav class="pager pager--feed pager--pro" aria-label="Pagination">
   {% if page > 1 %}
   <a
+    class="pager__btn"
     href="{{ url_for('main.ssr_feed', page=page - 1, per_page=per_page) }}{% if stage_filter %}&stage={{ stage_filter }}{% endif %}"
     >← Newer</a
   >
   {% else %}
-  <span class="muted">← Newer</span>
+  <span class="pager__muted">← Newer</span>
   {% endif %}
-  <span class="muted">Page {{ page }} · {{ feed.items | length }} here</span>
+  <span class="pager__meta">Page {{ page }} · {{ feed.items | length }} on this page</span>
   {% if feed.has_next %}
   <a
+    class="pager__btn"
     href="{{ url_for('main.ssr_feed', page=page + 1, per_page=per_page) }}{% if stage_filter %}&stage={{ stage_filter }}{% endif %}"
     >Older →</a
   >
   {% else %}
-  <span class="muted">Older →</span>
+  <span class="pager__muted">Older →</span>
   {% endif %}
 </nav>
 {% endblock %}

@@ -1,55 +1,103 @@
 {% extends "app_shell.html" %}
 {% block title %}{{ 'Edit project' if project else 'New project' }}{% endblock %}
 {% block app_main %}
-<header class="app-page-header">
-  <h1 class="app-page-title">{{ 'Edit project' if project else 'New project' }}</h1>
-  <p class="app-page-lead">
-    {% if project %}
-    <a href="{{ url_for('main.project_detail', project_id=project.id) }}">← Back to project</a>
-    {% else %}
-    Describe what you are building in public.
-    {% endif %}
-  </p>
-</header>
+<div class="project-editor-page">
+  <header class="project-editor-head">
+    <div>
+      <p class="project-editor-head__eyebrow">{% if project %}Update{% else %}Create{% endif %}</p>
+      <h1 class="app-page-title">{{ 'Edit project' if project else 'New project' }}</h1>
+      <p class="app-page-lead project-editor-head__lead">
+        {% if project %}
+        <a class="project-editor-head__back" href="{{ url_for('main.project_detail', project_id=project.id) }}">← Back to project</a>
+        {% else %}
+        Tell people what you are building, where you are in the journey, and what kind of help would move you forward.
+        {% endif %}
+      </p>
+    </div>
+    <div class="project-editor-head__tips" role="note">
+      <p class="project-editor-head__tips-title">Tips</p>
+      <ul class="project-editor-head__tips-list">
+        <li>Clear title: think product or initiative, not a repo name only.</li>
+        <li>Stage helps others filter the feed and spot peers.</li>
+        <li>Support needed turns browsers into collaborators.</li>
+      </ul>
+    </div>
+  </header>
 
-<div class="gh-panel" style="max-width: 40rem">
-  {% if error %}
-  <p class="form-error">{{ error }}</p>
-  {% endif %}
-  <form
-    method="post"
-    action="{{ url_for('main.project_edit', project_id=project.id) if project else url_for('main.project_new') }}"
-  >
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-    <label class="field-label" for="title">Title</label>
-    <input
-      class="field-input"
-      id="title"
-      name="title"
-      type="text"
-      required
-      minlength="2"
-      value="{{ project.title if project else '' }}"
-    />
-    <label class="field-label" for="description">Description</label>
-    <textarea class="field-input" id="description" name="description" rows="5">{{ project.description if project else '' }}</textarea>
-    <label class="field-label" for="stage">Stage</label>
-    <select class="field-input" id="stage" name="stage" required>
-      {% for s in stages %}
-      <option value="{{ s }}" {% if project and project.stage == s %}selected{% endif %}>{{ s }}</option>
-      {% endfor %}
-    </select>
-    <label class="field-label" for="support_needed">Support needed</label>
-    <input
-      class="field-input"
-      id="support_needed"
-      name="support_needed"
-      type="text"
-      maxlength="200"
-      value="{{ project.support_needed if project else '' }}"
-      placeholder="e.g. code review, design feedback"
-    />
-    <button type="submit" class="btn btn--primary">{{ 'Save changes' if project else 'Create project' }}</button>
-  </form>
+  <div class="project-editor-layout">
+    <div class="gh-panel project-editor-panel">
+      {% if error %}
+      <p class="form-error">{{ error }}</p>
+      {% endif %}
+      <form
+        method="post"
+        action="{{ url_for('main.project_edit', project_id=project.id) if project else url_for('main.project_new') }}"
+        class="stack-form project-editor-form"
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <label class="field-label" for="title">Title</label>
+        <input
+          class="field-input"
+          id="title"
+          name="title"
+          type="text"
+          required
+          minlength="2"
+          value="{{ project.title if project else '' }}"
+          placeholder="e.g. Township delivery tracker"
+        />
+        <label class="field-label" for="description">Description</label>
+        <textarea
+          class="field-input"
+          id="description"
+          name="description"
+          rows="6"
+          placeholder="Problem, approach, stack, links. This is your public README."
+        >{{ project.description if project else '' }}</textarea>
+        <label class="field-label" for="stage">Stage</label>
+        <select class="field-input" id="stage" name="stage" required>
+          {% for s in stages %}
+          <option value="{{ s }}" {% if project and project.stage == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <label class="field-label" for="support_needed">Support needed</label>
+        <input
+          class="field-input"
+          id="support_needed"
+          name="support_needed"
+          type="text"
+          maxlength="200"
+          value="{{ project.support_needed if project else '' }}"
+          placeholder="e.g. code review, design feedback, testers"
+        />
+        <label class="field-label" for="repo_url">Repository URL (GitHub, GitLab, etc.)</label>
+        <input
+          class="field-input"
+          id="repo_url"
+          name="repo_url"
+          type="url"
+          maxlength="500"
+          value="{{ project.repo_url if project else '' }}"
+          placeholder="https://github.com/you/your-repo"
+        />
+        <label class="field-label" for="demo_url">Demo or preview URL</label>
+        <input
+          class="field-input"
+          id="demo_url"
+          name="demo_url"
+          type="url"
+          maxlength="500"
+          value="{{ project.demo_url if project else '' }}"
+          placeholder="https://your-demo.example.com"
+        />
+        <div class="project-editor-form__actions">
+          <button type="submit" class="btn btn--primary">{{ 'Save changes' if project else 'Create project' }}</button>
+          {% if project %}
+          <a class="btn btn--outline" href="{{ url_for('main.project_detail', project_id=project.id) }}">Cancel</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

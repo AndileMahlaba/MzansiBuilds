@@ -1,9 +1,9 @@
 {# nav_active: overview | feed | celebration | system | '' #}
 <div class="masthead-outer">
   <header class="masthead">
-    <a class="masthead__brand" href="{{ url_for('main.home') }}">
+    <a class="masthead__brand" href="{{ url_for('main.home') }}" title="MzansiBuilds home">
       <span class="masthead__mark" aria-hidden="true">M</span>
-      <span>MzansiBuilds</span>
+      <span class="masthead__wordmark">MzansiBuilds</span>
     </a>
     <nav class="masthead__nav" aria-label="Main">
       <a
@@ -29,12 +29,13 @@
     </nav>
     <div class="masthead__actions">
       {% if current_user.is_authenticated %}
-      <span class="page-meta">{{ current_user.name }}</span>
-      <form
-        method="post"
-        action="{{ url_for('main.logout') }}"
-        style="display: inline"
-      >
+      <a class="masthead__userchip" href="{{ url_for('main.account') }}" title="Account settings">
+        <span class="masthead__user-avatar" aria-hidden="true"
+          >{{ (current_user.name[0] if current_user.name else '?') | upper }}</span
+        >
+        <span class="masthead__user-label">{{ current_user.name }}</span>
+      </a>
+      <form method="post" action="{{ url_for('main.logout') }}" class="masthead__logout-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <button type="submit" class="btn btn--ghost">Log out</button>
       </form>

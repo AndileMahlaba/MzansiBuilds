@@ -2,11 +2,12 @@
 {% block title %}Not found · MzansiBuilds{% endblock %}
 {% block content %}
 <header class="page-head">
-  <h1>Page not found</h1>
-  <p class="sub">No route for <code>{{ path }}</code>.</p>
+  <h1>We couldn’t find that page</h1>
+  <p class="sub">The link may be outdated, or the page may have moved.</p>
   <p class="sub">
-    Try <a href="{{ url_for('main.ssr_feed') }}">developer feed</a> or
-    <a href="{{ url_for('main.projects_by_status', status='active') }}">active projects</a>.
+    Go to the <a href="{{ url_for('main.ssr_feed') }}">developer feed</a>,
+    <a href="{{ url_for('main.projects_by_status', status='active') }}">active projects</a>, or
+    <a href="{{ url_for('main.home') }}">home</a>.
   </p>
 </header>
 {% endblock %}

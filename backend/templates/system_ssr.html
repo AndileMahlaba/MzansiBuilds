@@ -1,28 +1,82 @@
 {% extends "app_shell.html" %}
 {% block title %}System{% endblock %}
 {% block app_main %}
-<header class="app-page-header">
+<header class="pulse-header">
+  <p class="pulse-header__eyebrow">Community pulse</p>
   <h1 class="app-page-title">Command center</h1>
   <p class="app-page-lead">
-    Live snapshot of the community — developers, projects, milestones, and momentum in one view.
+    One place to feel how busy the platform is: who is building, what is moving, and where collaboration is waiting.
   </p>
 </header>
 
-<div class="gh-panel">
-  <p class="meta">API version <strong>{{ api_version }}</strong></p>
-  <div class="stat-grid stat-grid--dense">
-    <div class="stat-pill"><span class="stat-pill__n">{{ snap.developers }}</span> developers</div>
-    <div class="stat-pill"><span class="stat-pill__n">{{ snap.active_projects }}</span> active</div>
-    <div class="stat-pill"><span class="stat-pill__n">{{ snap.completed_projects }}</span> completed</div>
-    <div class="stat-pill"><span class="stat-pill__n">{{ snap.milestones }}</span> milestones</div>
-    <div class="stat-pill"><span class="stat-pill__n">{{ snap.comments }}</span> comments</div>
-    <div class="stat-pill"><span class="stat-pill__n">{{ snap.pending_collaborations }}</span> pending collab</div>
+<section class="pulse-mega" aria-label="Headline metrics">
+  <article class="pulse-mega__card pulse-mega__card--primary">
+    <span class="pulse-mega__label">Active builds</span>
+    <span class="pulse-mega__value">{{ snap.active_projects }}</span>
+    <span class="pulse-mega__hint">Open projects on the feed right now</span>
+  </article>
+  <article class="pulse-mega__card">
+    <span class="pulse-mega__label">Builders</span>
+    <span class="pulse-mega__value">{{ snap.developers }}</span>
+    <span class="pulse-mega__hint">Registered profiles</span>
+  </article>
+  <article class="pulse-mega__card">
+    <span class="pulse-mega__label">Shipped</span>
+    <span class="pulse-mega__value">{{ snap.completed_projects }}</span>
+    <span class="pulse-mega__hint">Celebration wall total</span>
+  </article>
+  <article class="pulse-mega__card">
+    <span class="pulse-mega__label">Conversation</span>
+    <span class="pulse-mega__value">{{ snap.comments }}</span>
+    <span class="pulse-mega__hint">Comments across projects</span>
+  </article>
+</section>
+
+{% if insight_stage %}
+<section class="pulse-insight-banner">
+  <span class="pulse-insight-banner__icon" aria-hidden="true">◎</span>
+  <div>
+    <p class="pulse-insight-banner__title">Momentum snapshot</p>
+    <p class="pulse-insight-banner__text">
+      The busiest stage right now is <strong>{{ insight_stage }}</strong>. {{ insight_detail }}
+    </p>
   </div>
-  <h2 class="gh-h2" style="margin-top: 1.5rem">Stages (active)</h2>
-  <ul class="flat-list">
-    {% for stage, n in snap.stage_counts.items() %}
-    <li><code class="code-tag">{{ stage }}</code> <strong>{{ n }}</strong></li>
-    {% endfor %}
-  </ul>
+</section>
+{% endif %}
+
+<div class="pulse-grid">
+  <section class="gh-panel pulse-panel">
+    <h2 class="gh-h2">Engagement</h2>
+    <div class="pulse-engagement">
+      <div class="pulse-engagement__row">
+        <span class="pulse-engagement__k">Milestones logged</span>
+        <span class="pulse-engagement__v">{{ snap.milestones }}</span>
+      </div>
+      <div class="pulse-engagement__row">
+        <span class="pulse-engagement__k">Collaboration asks pending</span>
+        <span class="pulse-engagement__v">{{ snap.pending_collaborations }}</span>
+      </div>
+    </div>
+    <p class="pulse-panel__foot">Figures refresh whenever you load this page.</p>
+  </section>
+
+  <section class="gh-panel pulse-panel">
+    <h2 class="gh-h2">Active work by stage</h2>
+    <p class="pulse-panel__intro">Where open builds cluster. Wider bars mean more projects in that stage.</p>
+    <ul class="pulse-bars" role="list">
+      {% for stage, n in snap.stage_counts.items() %}
+      <li class="pulse-bars__row">
+        <span class="pulse-bars__label">{{ stage }}</span>
+        <div class="pulse-bars__track" role="presentation">
+          <span
+            class="pulse-bars__fill"
+            style="width: {{ (100 * n / stage_bar_max) | round(1) }}%;"
+          ></span>
+        </div>
+        <span class="pulse-bars__n">{{ n }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
 </div>
 {% endblock %}

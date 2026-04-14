@@ -8,6 +8,7 @@ from backend.models.collaboration import CollaborationRequest
 from backend.models.comment import Comment
 from backend.models.milestone import Milestone
 from backend.models.project import Project
+from backend.models.project_build_log import ProjectBuildLog
 from backend.models.user import User
 
 
@@ -76,11 +77,15 @@ class ProjectRepository:
         description: str,
         stage: str,
         support_needed: str,
+        repo_url: str = "",
+        demo_url: str = "",
     ) -> Project:
         p = Project(
             user_id=owner.id,
             title=title.strip(),
             description=(description or "").strip(),
+            repo_url=(repo_url or "").strip()[:500],
+            demo_url=(demo_url or "").strip()[:500],
             stage=stage.strip().lower(),
             support_needed=(support_needed or "").strip()[:200],
             status=PROJECT_ACTIVE,
@@ -96,6 +101,8 @@ class ProjectRepository:
         description: str | None,
         stage: str | None,
         support_needed: str | None,
+        repo_url: str | None = None,
+        demo_url: str | None = None,
     ) -> Project:
         if title is not None:
             project.title = title.strip()[:200]
@@ -105,6 +112,10 @@ class ProjectRepository:
             project.stage = stage.strip().lower()[:40]
         if support_needed is not None:
             project.support_needed = (support_needed or "")[:200]
+        if repo_url is not None:
+            project.repo_url = (repo_url or "").strip()[:500]
+        if demo_url is not None:
+            project.demo_url = (demo_url or "").strip()[:500]
         db.session.commit()
         return project
 
@@ -189,3 +200,25 @@ class ProjectRepository:
             .order_by(CollaborationRequest.created_at.desc())
             .all()
         )
+
+    def list_build_logs(self, project_id: int) -> list[ProjectBuildLog]:
+        return (
+            db.session.query(ProjectBuildLog)
+            .options(joinedload(ProjectBuildLog.author))
+            .filter_by(project_id=project_id)
+            .order_by(ProjectBuildLog.created_at.desc())
+            .all()
+        )
+
+    def add_build_log(
+        self, project_id: int, user_id: int, title: str, body: str
+    ) -> ProjectBuildLog:
+        log = ProjectBuildLog(
+            project_id=project_id,
+            user_id=user_id,
+            title=title.strip()[:200],
+            body=(body or "").strip()[:10000],
+        )
+        db.session.add(log)
+        db.session.commit()
+        return log

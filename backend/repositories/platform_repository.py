@@ -11,6 +11,7 @@ from backend.models.comment import Comment
 from backend.models.milestone import Milestone
 from backend.models.project import Project
 from backend.models.user import User
+from sqlalchemy.orm import joinedload
 
 
 @dataclass(frozen=True)
@@ -83,11 +84,21 @@ class PlatformRepository:
             stage_counts=stage_counts,
         )
 
+    def recent_comments(self, limit: int = 8) -> list[Comment]:
+        return (
+            db.session.query(Comment)
+            .options(
+                joinedload(Comment.author),
+                joinedload(Comment.project),
+            )
+            .order_by(Comment.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+
     def owner_project_summaries(
         self, user_id: int, limit: int = 12
     ) -> list[OwnerProjectSummary]:
-        from sqlalchemy.orm import joinedload
-
         projects = (
             db.session.query(Project)
             .options(joinedload(Project.owner))

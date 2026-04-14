@@ -17,13 +17,17 @@ class ProjectService:
         description: str,
         stage: str,
         support_needed: str,
+        repo_url: str = "",
+        demo_url: str = "",
     ) -> tuple[Project | None, str | None]:
         err = self._validate_stage(stage)
         if err:
             return None, err
         if not title or len(title.strip()) < 2:
             return None, "Please give the project a clearer title."
-        p = self._repo.create(owner, title, description, stage, support_needed)
+        p = self._repo.create(
+            owner, title, description, stage, support_needed, repo_url=repo_url, demo_url=demo_url
+        )
         return p, None
 
     def update(
@@ -34,6 +38,8 @@ class ProjectService:
         description: str | None,
         stage: str | None,
         support_needed: str | None,
+        repo_url: str | None = None,
+        demo_url: str | None = None,
     ) -> tuple[Project | None, str | None]:
         if project.user_id != actor.id:
             return None, "You can only edit your own projects."
@@ -41,7 +47,15 @@ class ProjectService:
             err = self._validate_stage(stage)
             if err:
                 return None, err
-        p = self._repo.update(project, title, description, stage, support_needed)
+        p = self._repo.update(
+            project,
+            title,
+            description,
+            stage,
+            support_needed,
+            repo_url=repo_url,
+            demo_url=demo_url,
+        )
         return p, None
 
     def complete(self, project: Project, actor: User) -> tuple[Project | None, str | None]:
@@ -68,6 +82,16 @@ class ProjectService:
             return None, "Comment cannot be empty."
         c = self._repo.add_comment(project.id, actor.id, content)
         return c, None
+
+    def add_build_log(
+        self, project: Project, actor: User, title: str, body: str
+    ) -> tuple[object | None, str | None]:
+        if project.user_id != actor.id:
+            return None, "Only the owner can post build updates."
+        if not title or len(title.strip()) < 2:
+            return None, "Please add a short title for this update."
+        log = self._repo.add_build_log(project.id, actor.id, title, body)
+        return log, None
 
     def request_collaboration(
         self, project: Project, actor: User, message: str

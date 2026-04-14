@@ -2,22 +2,28 @@ from __future__ import annotations
 
 from functools import wraps
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user, login_user, logout_user
 
 from backend.constants import PROJECT_STAGES
-from backend.extensions import csrf
+from backend.extensions import limiter
 from backend.repositories.platform_repository import PlatformRepository
 from backend.repositories.project_repository import ProjectRepository
 from backend.repositories.user_repository import UserRepository
 from backend.serialization import (
+    build_log_public,
     collab_public,
     comment_public,
     milestone_public,
     project_public,
     user_public,
 )
+
+
+def _viewer_id() -> int | None:
+    return current_user.id if current_user.is_authenticated else None
 from backend.services.auth_service import AuthService
+from backend.services.email_delivery import send_verification_email
 from backend.services.feed_service import FeedService
 from backend.services.project_service import ProjectService
 
@@ -36,7 +42,7 @@ API_VERSION = "1.0.0"
 def api_discovery():
     """Machine-readable catalog of the JSON API (similar to a public system index)."""
     return jsonify(
-        system="MzansiBuilds — build in public",
+        system="MzansiBuilds: build in public",
         version=API_VERSION,
         theme="green · white · black",
         endpoints={
@@ -89,7 +95,7 @@ def ping():
 
 @api_v1_bp.route("/stats", methods=["GET"])
 def stats():
-    """Platform-wide aggregates — same numbers power the /overview command center."""
+    """Platform-wide aggregates (same numbers power the command center)."""
     s = _platform.snapshot()
     return jsonify(
         developers=s.developers,
@@ -102,8 +108,12 @@ def stats():
     )
 
 
-@csrf.exempt
 @api_v1_bp.route("/auth/register", methods=["POST"])
+@limiter.limit(
+    "15 per minute",
+    methods=["POST"],
+    error_message="Too many registration attempts.",
+)
 def register():
     body = _json_body()
     name = (body.get("name") or "").strip()
@@ -111,15 +121,29 @@ def register():
     password = body.get("password") or ""
     if not name or not email or not password:
         return jsonify(error="name, email, and password are required"), 400
-    user, err = _auth.register(name, email, password)
+    need_verify = bool(current_app.config.get("EMAIL_VERIFICATION_REQUIRED", True))
+    user, err = _auth.register(
+        name, email, password, email_verified=not need_verify
+    )
     if err:
         return jsonify(error=err), 400
+    if need_verify:
+        send_verification_email(user)
+        return jsonify(
+            user=user_public(user, viewer_id=user.id),
+            verification_required=True,
+            message="Check your email to verify your account before signing in.",
+        ), 201
     login_user(user)
-    return jsonify(user=user_public(user)), 201
+    return jsonify(user=user_public(user, viewer_id=user.id)), 201
 
 
-@csrf.exempt
 @api_v1_bp.route("/auth/login", methods=["POST"])
+@limiter.limit(
+    "30 per minute",
+    methods=["POST"],
+    error_message="Too many login attempts.",
+)
 def login():
     body = _json_body()
     email = (body.get("email") or "").strip()
@@ -129,11 +153,18 @@ def login():
     user = _auth.authenticate(email, password)
     if not user:
         return jsonify(error="Invalid email or password"), 401
+    if not getattr(user, "email_verified", True):
+        return (
+            jsonify(
+                error="Email not verified. Check your inbox or request a new link.",
+                email_verified=False,
+            ),
+            403,
+        )
     login_user(user)
-    return jsonify(user=user_public(user))
+    return jsonify(user=user_public(user, viewer_id=user.id))
 
 
-@csrf.exempt
 @api_v1_bp.route("/auth/logout", methods=["POST"])
 @api_login_required
 def logout():
@@ -144,10 +175,9 @@ def logout():
 @api_v1_bp.route("/me", methods=["GET"])
 @api_login_required
 def me():
-    return jsonify(user=user_public(current_user))
+    return jsonify(user=user_public(current_user, viewer_id=current_user.id))
 
 
-@csrf.exempt
 @api_v1_bp.route("/me", methods=["PATCH"])
 @api_login_required
 def patch_me():
@@ -158,12 +188,20 @@ def patch_me():
     bio_kw = None
     if "bio" in body:
         bio_kw = str(body.get("bio") or "")
+    profile_public_kw = None
+    if "profile_public" in body:
+        v = body.get("profile_public")
+        if isinstance(v, bool):
+            profile_public_kw = v
+        else:
+            profile_public_kw = str(v).lower() in ("1", "true", "yes")
     _users.update_profile(
         current_user,
         name_kw if "name" in body else None,
         bio_kw if "bio" in body else None,
+        profile_public_kw,
     )
-    return jsonify(user=user_public(current_user))
+    return jsonify(user=user_public(current_user, viewer_id=current_user.id))
 
 
 @api_v1_bp.route("/me/projects", methods=["GET"])
@@ -173,7 +211,7 @@ def my_projects():
     return jsonify(
         projects=[
             {
-                "project": project_public(s.project),
+                "project": project_public(s.project, viewer_id=_viewer_id()),
                 "milestone_count": s.milestone_count,
                 "comment_count": s.comment_count,
             }
@@ -196,7 +234,7 @@ def feed():
     if stage and stage not in PROJECT_STAGES:
         stage = ""
     result = _feed.page(page=page, per_page=per_page, stage=stage or None)
-    items = [project_public(p) for p in result.items]
+    items = [project_public(p, viewer_id=_viewer_id()) for p in result.items]
     return jsonify(
         projects=items,
         total=result.total,
@@ -217,13 +255,13 @@ def feed_spotlight():
     except ValueError:
         pool = 150
     items = _feed.spotlight_newest(k=k, pool=pool)
-    return jsonify(projects=[project_public(p) for p in items])
+    return jsonify(projects=[project_public(p, viewer_id=_viewer_id()) for p in items])
 
 
 @api_v1_bp.route("/celebration", methods=["GET"])
 def celebration():
     projects = _repo.list_celebration(limit=200)
-    return jsonify(projects=[project_public(p) for p in projects])
+    return jsonify(projects=[project_public(p, viewer_id=_viewer_id()) for p in projects])
 
 
 @api_v1_bp.route("/projects/<int:project_id>", methods=["GET"])
@@ -234,38 +272,46 @@ def get_project(project_id: int):
     milestones = [milestone_public(m) for m in _repo.list_milestones_ordered(project_id)]
     comments = [comment_public(c) for c in _repo.list_comments(project_id)]
     collabs = [collab_public(r) for r in _repo.list_collaboration_for_project(project_id)]
+    build_logs = [build_log_public(x) for x in _repo.list_build_logs(project_id)]
     return jsonify(
-        project=project_public(project),
+        project=project_public(project, viewer_id=_viewer_id()),
         milestones=milestones,
+        build_logs=build_logs,
         comments=comments,
         collaboration_requests=collabs,
     )
 
 
-@csrf.exempt
 @api_v1_bp.route("/projects", methods=["POST"])
 @api_login_required
 def create_project():
+    if not getattr(current_user, "email_verified", True):
+        return jsonify(error="Verify your email before creating projects."), 403
     body = _json_body()
     title = (body.get("title") or "").strip()
     description = (body.get("description") or "").strip()
     stage = (body.get("stage") or "").strip().lower()
     support = (body.get("support_needed") or "").strip()
+    repo_url = (body.get("repo_url") or "").strip()
+    demo_url = (body.get("demo_url") or "").strip()
     if not stage:
         return jsonify(error="stage is required"), 400
     if stage not in PROJECT_STAGES:
         return jsonify(error=f"stage must be one of: {', '.join(PROJECT_STAGES)}"), 400
-    project, err = _svc.create(current_user, title, description, stage, support)
+    project, err = _svc.create(
+        current_user, title, description, stage, support, repo_url=repo_url, demo_url=demo_url
+    )
     if err:
         return jsonify(error=err), 400
     project = _repo.get_by_id(project.id)
-    return jsonify(project=project_public(project)), 201
+    return jsonify(project=project_public(project, viewer_id=_viewer_id())), 201
 
 
-@csrf.exempt
 @api_v1_bp.route("/projects/<int:project_id>", methods=["PATCH"])
 @api_login_required
 def patch_project(project_id: int):
+    if not getattr(current_user, "email_verified", True):
+        return jsonify(error="Verify your email before editing projects."), 403
     project = _repo.get_by_id(project_id)
     if not project:
         return jsonify(error="Not found"), 404
@@ -284,6 +330,12 @@ def patch_project(project_id: int):
     support_needed = None
     if "support_needed" in body:
         support_needed = (body.get("support_needed") or "").strip()
+    repo_url = None
+    if "repo_url" in body:
+        repo_url = (body.get("repo_url") or "").strip()
+    demo_url = None
+    if "demo_url" in body:
+        demo_url = (body.get("demo_url") or "").strip()
     _, err = _svc.update(
         project,
         current_user,
@@ -291,17 +343,20 @@ def patch_project(project_id: int):
         description,
         stage,
         support_needed,
+        repo_url=repo_url,
+        demo_url=demo_url,
     )
     if err:
         return jsonify(error=err), 400
     project = _repo.get_by_id(project_id)
-    return jsonify(project=project_public(project))
+    return jsonify(project=project_public(project, viewer_id=_viewer_id()))
 
 
-@csrf.exempt
 @api_v1_bp.route("/projects/<int:project_id>/complete", methods=["POST"])
 @api_login_required
 def complete_project(project_id: int):
+    if not getattr(current_user, "email_verified", True):
+        return jsonify(error="Verify your email before completing projects."), 403
     project = _repo.get_by_id(project_id)
     if not project:
         return jsonify(error="Not found"), 404
@@ -309,13 +364,31 @@ def complete_project(project_id: int):
     if err:
         return jsonify(error=err), 400
     project = _repo.get_by_id(project_id)
-    return jsonify(project=project_public(project))
+    return jsonify(project=project_public(project, viewer_id=_viewer_id()))
 
 
-@csrf.exempt
+@api_v1_bp.route("/projects/<int:project_id>/build-log", methods=["POST"])
+@api_login_required
+def post_build_log(project_id: int):
+    if not getattr(current_user, "email_verified", True):
+        return jsonify(error="Verify your email before posting updates."), 403
+    project = _repo.get_by_id(project_id)
+    if not project:
+        return jsonify(error="Not found"), 404
+    body = _json_body()
+    title = (body.get("title") or "").strip()
+    desc = (body.get("body") or body.get("description") or "").strip()
+    log, err = _svc.add_build_log(project, current_user, title, desc)
+    if err:
+        return jsonify(error=err), 400
+    return jsonify(build_log=build_log_public(log)), 201
+
+
 @api_v1_bp.route("/projects/<int:project_id>/comments", methods=["POST"])
 @api_login_required
 def post_comment(project_id: int):
+    if not getattr(current_user, "email_verified", True):
+        return jsonify(error="Verify your email before commenting."), 403
     project = _repo.get_by_id(project_id)
     if not project:
         return jsonify(error="Not found"), 404
@@ -329,10 +402,11 @@ def post_comment(project_id: int):
     return jsonify(comment=comment_public(last) if last else None), 201
 
 
-@csrf.exempt
 @api_v1_bp.route("/projects/<int:project_id>/milestones", methods=["POST"])
 @api_login_required
 def post_milestone(project_id: int):
+    if not getattr(current_user, "email_verified", True):
+        return jsonify(error="Verify your email before posting milestones."), 403
     project = _repo.get_by_id(project_id)
     if not project:
         return jsonify(error="Not found"), 404
@@ -347,10 +421,11 @@ def post_milestone(project_id: int):
     return jsonify(milestone=milestone_public(last) if last else None), 201
 
 
-@csrf.exempt
 @api_v1_bp.route("/projects/<int:project_id>/collaboration", methods=["POST"])
 @api_login_required
 def post_collaboration(project_id: int):
+    if not getattr(current_user, "email_verified", True):
+        return jsonify(error="Verify your email before requesting collaboration."), 403
     project = _repo.get_by_id(project_id)
     if not project:
         return jsonify(error="Not found"), 404

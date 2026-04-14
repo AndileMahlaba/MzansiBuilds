@@ -1,34 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Log in · MzansiBuilds{% endblock %}
 {% block content %}
-<header class="page-head">
-  <h1>Log in</h1>
-  <p class="sub">Session cookies work with the JSON API on the same origin.</p>
-</header>
+<div class="auth-page">
+  <header class="page-head page-head--auth">
+    <h1>Log in</h1>
+    <p class="sub">Welcome back. Open your workspace and pick up where you left off.</p>
+  </header>
 
-<div class="form-panel">
-  {% if error %}
-  <p class="form-error">{{ error }}</p>
-  {% endif %}
-  <form method="post" action="{{ url_for('main.login') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-    <label for="email">Email</label>
-    <input id="email" name="email" type="email" autocomplete="username" required />
-    <label for="password">Password</label>
-    <input
-      id="password"
-      name="password"
-      type="password"
-      autocomplete="current-password"
-      required
-    />
-    <button type="submit" class="btn btn--primary" style="width: 100%">
-      Log in
-    </button>
-  </form>
-  <p class="page-meta" style="margin-top: 1rem">
-    No account?
-    <a href="{{ url_for('main.register') }}">Register</a>
-  </p>
+  <div class="auth-card">
+    {% if error %}
+    <p class="form-error">{{ error }}</p>
+    {% endif %}
+    {% if pending_email %}
+    <p class="auth-card__hint">
+      <a href="{{ url_for('main.register_pending', email=pending_email) }}">Open the check-email page</a> to resend.
+    </p>
+    {% endif %}
+    <form method="post" action="{{ url_for('main.login') }}" class="auth-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div class="auth-field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="username" required placeholder="you@example.com" />
+      </div>
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          placeholder="Your password"
+        />
+        <a class="auth-field__forgot" href="{{ url_for('main.forgot_password') }}">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn btn--primary btn--auth-submit">Log in</button>
+    </form>
+    <p class="auth-footer">
+      New here?
+      <a href="{{ url_for('main.register') }}">Create an account</a>
+    </p>
+  </div>
 </div>
 {% endblock %}

@@ -10,10 +10,13 @@ if str(_REPO_ROOT) not in sys.path:
 
 from flask import Flask, redirect, request
 from flask_cors import CORS
+from flask_login import current_user
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import OperationalError
 
 from backend.config import Config, TestConfig
-from backend.extensions import csrf, db, login_manager
+from backend.extensions import csrf, db, limiter, login_manager
+from backend.http_security import register_error_handlers, register_security_headers
 import backend.models  # noqa: F401  # registers ORM mappers for create_all
 from backend.models.user import User
 
@@ -38,6 +41,23 @@ def create_app(test_config: bool = False) -> Flask:
     db.init_app(app)
     csrf.init_app(app)
     login_manager.init_app(app)
+    limiter.init_app(app)
+    register_security_headers(app)
+    register_error_handlers(app)
+
+    @app.template_global("visible_owner_bio")
+    def visible_owner_bio(owner):
+        """Return bio text for SSR when the viewer may see it (public profile or self)."""
+        if owner is None:
+            return None
+        bio = (getattr(owner, "bio", None) or "").strip()
+        if not bio:
+            return None
+        if getattr(owner, "profile_public", True):
+            return bio
+        if current_user.is_authenticated and getattr(current_user, "id", None) == owner.id:
+            return bio
+        return None
 
     @login_manager.user_loader
     def load_user(user_id: str) -> User | None:
@@ -83,10 +103,14 @@ def create_app(test_config: bool = False) -> Flask:
     # Register explicit /api/v1 routes after the SPA catch-all so they override ``/<path:path>``.
     app.register_blueprint(main_bp)
     app.register_blueprint(api_v1_bp)
+    csrf.exempt(api_v1_bp)
 
     with app.app_context():
         try:
             db.create_all()
+            _ensure_user_profile_public_column()
+            _ensure_user_email_verified_column()
+            _ensure_project_repo_demo_columns()
         except OperationalError as err:
             parts = [str(err)]
             if getattr(err, "orig", None) is not None:
@@ -101,3 +125,77 @@ def create_app(test_config: bool = False) -> Flask:
             raise
 
     return app
+
+
+def _ensure_user_profile_public_column() -> None:
+    """Add profile_public when upgrading existing DBs (SQLite / Postgres)."""
+    engine = db.engine
+    dialect = engine.dialect.name
+    if dialect == "sqlite":
+        insp = inspect(engine)
+        if "users" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("users")}
+        if "profile_public" in cols:
+            return
+        with engine.begin() as conn:
+            conn.execute(
+                text("ALTER TABLE users ADD COLUMN profile_public BOOLEAN NOT NULL DEFAULT 1")
+            )
+    elif dialect == "postgresql":
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_public BOOLEAN NOT NULL DEFAULT TRUE"
+                )
+            )
+
+
+def _ensure_user_email_verified_column() -> None:
+    engine = db.engine
+    dialect = engine.dialect.name
+    if dialect == "sqlite":
+        insp = inspect(engine)
+        if "users" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("users")}
+        if "email_verified" in cols:
+            return
+        with engine.begin() as conn:
+            conn.execute(
+                text("ALTER TABLE users ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT 1")
+            )
+    elif dialect == "postgresql":
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT TRUE"
+                )
+            )
+
+
+def _ensure_project_repo_demo_columns() -> None:
+    engine = db.engine
+    dialect = engine.dialect.name
+    if dialect == "sqlite":
+        insp = inspect(engine)
+        if "projects" not in insp.get_table_names():
+            return
+        cols = {c["name"] for c in insp.get_columns("projects")}
+        with engine.begin() as conn:
+            if "repo_url" not in cols:
+                conn.execute(text("ALTER TABLE projects ADD COLUMN repo_url VARCHAR(500) NOT NULL DEFAULT ''"))
+            if "demo_url" not in cols:
+                conn.execute(text("ALTER TABLE projects ADD COLUMN demo_url VARCHAR(500) NOT NULL DEFAULT ''"))
+    elif dialect == "postgresql":
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "ALTER TABLE projects ADD COLUMN IF NOT EXISTS repo_url VARCHAR(500) NOT NULL DEFAULT ''"
+                )
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE projects ADD COLUMN IF NOT EXISTS demo_url VARCHAR(500) NOT NULL DEFAULT ''"
+                )
+            )

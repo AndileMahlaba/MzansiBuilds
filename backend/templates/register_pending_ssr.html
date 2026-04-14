@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Check your email · MzansiBuilds{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <header class="page-head page-head--auth">
+    <h1>Confirm your email</h1>
+    <p class="sub">
+      We sent a link to <strong>{{ email or "your address" }}</strong>. Open it to activate your account, then come back here to sign in.
+    </p>
+  </header>
+  <div class="auth-card">
+    <p class="auth-card__note">
+      No message yet? Check spam, or resend below. For email to work in production, the server must have SMTP configured (see deployment notes).
+    </p>
+    <form method="post" action="{{ url_for('main.resend_verification') }}" class="auth-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div class="auth-field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" value="{{ email or '' }}" required autocomplete="email" />
+      </div>
+      <button type="submit" class="btn btn--primary btn--auth-submit">Resend confirmation</button>
+    </form>
+    <p class="auth-footer"><a href="{{ url_for('main.login') }}">Back to log in</a></p>
+  </div>
+</div>
+{% endblock %}

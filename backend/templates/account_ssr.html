@@ -1,20 +1,145 @@
 {% extends "app_shell.html" %}
 {% block title %}Account{% endblock %}
 {% block app_main %}
-<header class="app-page-header">
-  <h1 class="app-page-title">Account</h1>
-  <p class="app-page-lead">Your public profile — name and bio stay in sync across the platform.</p>
-</header>
+<div class="profile-page profile-page--settings">
+  <section class="profile-hero" aria-labelledby="profile-heading">
+    <div class="profile-hero__glow" aria-hidden="true"></div>
+    <div class="profile-hero__main">
+      <div class="profile-avatar" aria-hidden="true">{{ (current_user.name[0] if current_user.name else '?') | upper }}</div>
+      <div class="profile-hero__copy">
+        <p class="profile-hero__eyebrow">Account &amp; profile</p>
+        <h1 id="profile-heading" class="profile-hero__title">You</h1>
+        <p class="profile-hero__lead">
+          Shape how you show up across the feed, projects, and comments. Like a GitHub or Discord profile, but for what you ship in public.
+        </p>
+        <p class="profile-hero__email">
+          <span class="profile-hero__email-label">Signed in as</span>
+          <span class="profile-hero__email-value">{{ current_user.email }}</span>
+        </p>
+      </div>
+    </div>
+  </section>
 
-<div class="gh-panel" style="max-width: 32rem">
-  <form method="post" action="{{ url_for('main.account') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-    <label class="field-label" for="name">Display name</label>
-    <input class="field-input" id="name" name="name" type="text" value="{{ current_user.name }}" required />
-    <label class="field-label" for="bio">Bio</label>
-    <textarea class="field-input" id="bio" name="bio" rows="4" maxlength="500">{{ current_user.bio or '' }}</textarea>
-    <p class="field-hint">{{ (current_user.email) }} — email change not supported here.</p>
-    <button type="submit" class="btn btn--primary">Save profile</button>
-  </form>
+  <div class="profile-settings-grid">
+    <section class="profile-panel" aria-labelledby="profile-preview-heading">
+      <h2 id="profile-preview-heading" class="profile-panel__title">Preview</h2>
+      <p class="profile-panel__intro">How others see you on the feed and project pages (not your email).</p>
+      {% if not current_user.profile_public %}
+      <p class="profile-panel__intro profile-panel__intro--warn">Private mode: others only see your name until you turn public visibility on.</p>
+      {% endif %}
+      <div class="profile-preview-card">
+        <div class="profile-preview-card__avatar" aria-hidden="true">{{ (current_user.name[0] if current_user.name else '?') | upper }}</div>
+        <div>
+          <p class="profile-preview-card__name">{{ current_user.name }}</p>
+          {% if current_user.profile_public %}
+            {% set preview_bio = (current_user.bio or '') | trim %}
+            {% if preview_bio %}
+            <p class="profile-preview-card__bio">{{ preview_bio }}</p>
+            {% else %}
+            <p class="profile-preview-card__bio profile-preview-card__bio--empty">Add a bio below. Builders read this before they collaborate.</p>
+            {% endif %}
+          {% else %}
+            <p class="profile-preview-card__bio profile-preview-card__bio--empty">Bio hidden from others while your profile is private.</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-panel" aria-labelledby="profile-edit-heading">
+      <h2 id="profile-edit-heading" class="profile-panel__title">Profile</h2>
+      <p class="profile-panel__intro">Name and bio appear on your projects, comments, and feed cards when visibility allows.</p>
+      <form method="post" action="{{ url_for('main.account') }}" class="profile-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="profile-form__row">
+          <label class="field-label" for="name">Display name</label>
+          <input
+            class="field-input"
+            id="name"
+            name="name"
+            type="text"
+            value="{{ current_user.name }}"
+            required
+            autocomplete="name"
+            placeholder="Your name"
+          />
+        </div>
+        <div class="profile-form__row">
+          <label class="field-label" for="bio">Bio</label>
+          <textarea
+            class="field-input"
+            id="bio"
+            name="bio"
+            rows="5"
+            maxlength="500"
+            placeholder="What you build, stack, or how you like to collaborate."
+          >{{ current_user.bio or '' }}</textarea>
+          <span class="profile-form__counter">{{ (current_user.bio or '')|length }}/500</span>
+        </div>
+        <fieldset class="profile-fieldset">
+          <legend class="field-label">Visibility</legend>
+          <label class="profile-check">
+            <input type="checkbox" name="profile_public" value="1" {% if current_user.profile_public %}checked{% endif %} />
+            <span>Public profile: show my bio on the feed, project pages, and alongside comments.</span>
+          </label>
+          <p class="field-hint profile-check__hint">When off, only you still see your bio here; everyone else sees your name only.</p>
+        </fieldset>
+        <div class="profile-form__actions">
+          <button type="submit" class="btn btn--primary btn--profile-save">Save profile</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="profile-panel profile-panel--security" aria-labelledby="security-heading">
+      <h2 id="security-heading" class="profile-panel__title">Security</h2>
+      <p class="profile-panel__intro">Change the password for this email. Use a unique password you do not reuse elsewhere.</p>
+      <form method="post" action="{{ url_for('main.account_password') }}" class="profile-form profile-form--stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="profile-form__row">
+          <label class="field-label" for="current_password">Current password</label>
+          <input
+            class="field-input"
+            id="current_password"
+            name="current_password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+        <div class="profile-form__row">
+          <label class="field-label" for="new_password">New password</label>
+          <input
+            class="field-input"
+            id="new_password"
+            name="new_password"
+            type="password"
+            autocomplete="new-password"
+            required
+            minlength="8"
+            placeholder="At least 8 characters"
+          />
+        </div>
+        <div class="profile-form__row">
+          <label class="field-label" for="confirm_password">Confirm new password</label>
+          <input
+            class="field-input"
+            id="confirm_password"
+            name="confirm_password"
+            type="password"
+            autocomplete="new-password"
+            required
+            minlength="8"
+          />
+        </div>
+        <div class="profile-form__actions profile-form__actions--tight">
+          <button type="submit" class="btn btn--primary">Update password</button>
+        </div>
+      </form>
+      <p class="profile-panel__foot">
+        Signed out everywhere?
+        <a href="{{ url_for('main.forgot_password') }}">Reset via email link</a>
+        (check the dev hint after submitting if email is not configured).
+      </p>
+    </section>
+  </div>
 </div>
 {% endblock %}

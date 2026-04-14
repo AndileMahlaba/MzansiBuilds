@@ -8,10 +8,11 @@
     {% include "partials/head_assets_rest.html" %}
   </head>
   <body class="theme-product">
+    <a class="skip-link" href="#main-content">Skip to content</a>
     {% include "partials/masthead.html" %}
-    <main class="shell shell--wide product-main">{% block content %}{% endblock %}</main>
+    <main id="main-content" class="shell shell--wide product-main">{% block content %}{% endblock %}</main>
     <footer class="site-foot">
-      MzansiBuilds · PostgreSQL · secure server-side data access
+      {% include "partials/site_footer.html" %}
     </footer>
   </body>
 </html>

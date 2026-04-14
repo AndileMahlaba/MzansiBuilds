@@ -8,12 +8,19 @@ class AuthService:
     def __init__(self, users: UserRepository | None = None) -> None:
         self._users = users or UserRepository()
 
-    def register(self, name: str, email: str, password: str) -> tuple[User | None, str | None]:
+    def register(
+        self,
+        name: str,
+        email: str,
+        password: str,
+        *,
+        email_verified: bool = True,
+    ) -> tuple[User | None, str | None]:
         if self._users.get_by_email(email):
             return None, "An account with that email already exists."
         if len(password) < 8:
             return None, "Password should be at least 8 characters."
-        user = self._users.create(name, email, password)
+        user = self._users.create(name, email, password, email_verified=email_verified)
         return user, None
 
     def authenticate(self, email: str, password: str) -> User | None:

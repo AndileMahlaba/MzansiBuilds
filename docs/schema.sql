@@ -8,6 +8,7 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(256) NOT NULL,
     bio VARCHAR(500) DEFAULT '',
+    profile_public BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -18,6 +19,8 @@ CREATE TABLE projects (
     user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     title VARCHAR(200) NOT NULL,
     description TEXT DEFAULT '',
+    repo_url VARCHAR(500) NOT NULL DEFAULT '',
+    demo_url VARCHAR(500) NOT NULL DEFAULT '',
     stage VARCHAR(40) NOT NULL,
     support_needed VARCHAR(200) DEFAULT '',
     status VARCHAR(20) NOT NULL DEFAULT 'active',
@@ -51,6 +54,18 @@ CREATE TABLE comments (
 
 CREATE INDEX ix_comments_project_id ON comments (project_id);
 CREATE INDEX ix_comments_created_at ON comments (created_at);
+
+CREATE TABLE project_build_logs (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    body TEXT DEFAULT '',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX ix_project_build_logs_project_id ON project_build_logs (project_id);
+CREATE INDEX ix_project_build_logs_created_at ON project_build_logs (created_at);
 
 CREATE TABLE collaboration_requests (
     id SERIAL PRIMARY KEY,
